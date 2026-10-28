@@ -3,6 +3,7 @@ import { copyFile, mkdir, readdir, readFile, unlink, writeFile } from "node:fs/p
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import type { FastifyInstance } from "fastify";
+import { invalidateGalleryCatalog } from "../gallery/gallery-cache.js";
 
 interface JobStep { step: string; status: string; detail: string }
 interface Job {
@@ -105,6 +106,10 @@ export async function registerWorkflowRoutes(
       const child = spawn(opts.python, [opts.scriptPath, imgPath, jsonPath], {
         env: { ...process.env, PYTHONPATH: opts.pythonPath }
       });
+      // spawn 失败（解释器路径不存在等）会抛 error 事件，未处理会直接终止 Node 进程
+      child.on("error", (error) => {
+        reject(new Error(`无法启动分析进程 ${opts.python}: ${error.message}`));
+      });
       let buf = "";
       child.stderr.on("data", (chunk) => {
         buf += String(chunk);
@@ -151,6 +156,8 @@ export async function registerWorkflowRoutes(
       batchId: batchId ?? null
     };
     await writeFile(path.join(opts.uploadDir, `${base}.json`), JSON.stringify(meta, null, 2));
+    // 新图落盘 → 让图库的扫描缓存立即失效，前端刷新就能看到新批次
+    invalidateGalleryCatalog();
     return name;
   }
 
@@ -546,6 +553,8 @@ export async function registerWorkflowRoutes(
         }
         break;
       }
+      // 删除会改变目录结构 → 图库缓存同样要失效
+      invalidateGalleryCatalog();
       return { ok: true, deleted: targets.length, dissolved, remaining };
     } catch (err) {
       return reply.code(500).send({ error: (err as Error).message });

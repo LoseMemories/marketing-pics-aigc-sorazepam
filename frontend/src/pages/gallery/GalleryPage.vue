@@ -84,6 +84,8 @@ interface GalleryItem {
   promptUrl: string | null;
   hasAnalysis: boolean;
   batchId: string | null;
+  /** 后端扫描时标记：存在重分析候选（`<base>.rerun.analysis.json`） */
+  pendingRerun: boolean;
   favorite: boolean;
   autoCategory: string | null;
   tags: string[];
@@ -195,6 +197,8 @@ function selectCategory(category: string) {
   statusFilter.value = "";
   selected.value = category;
   window.scrollTo({ top: 0 });
+  // 分类变了就重建分页会话，带分类参数向后端重新查询
+  void resetFeed();
 }
 
 function selectStatus(status: "favorite" | "retrying" | "needs-update") {
@@ -372,10 +376,11 @@ onMounted(async () => {
   mobileMedia = window.matchMedia("(max-width: 720px)");
   isMobile.value = mobileMedia.matches;
   mobileMedia.addEventListener("change", onMobileMediaChange);
-  await loadItems();
+  await resetFeed();
   void syncRetryEnabled();
   await nextTick();
   attachGridObserver();
+  attachFeedObserver();
 });
 
 function onMobileMediaChange(event: MediaQueryListEvent): void {
@@ -384,7 +389,7 @@ function onMobileMediaChange(event: MediaQueryListEvent): void {
 
 function syncFolderFromPath() {
   folderId.value = folderFromPath();
-  void loadItems();
+  void resetFeed();
 }
 onBeforeUnmount(() => {
   window.clearTimeout(popTimer);
@@ -399,61 +404,211 @@ onBeforeUnmount(() => {
   if (roRaf) cancelAnimationFrame(roRaf);
   ro?.disconnect();
   ro = null;
+  feedObserver?.disconnect();
+  feedObserver = null;
 });
 
 const error = ref("");
 let pollTimer = 0;
+
+/* ---------- 懒加载 feed ---------- */
+const feedSession = ref("");
+const feedExhausted = ref(false);
+const feedLoading = ref(false);
+const feedTotals = ref<Record<string, number>>({});
+/** 筛选区全量统计（独立接口，与懒加载无关） */
+const stats = ref<{
+  total: number;
+  categories: Array<{ name: string; total: number }>;
+  favorite: number;
+  analyzed: number;
+  needsUpdate: number;
+  uploads: { folders: number; folderItems: number; singles: number };
+} | null>(null);
+const sentinelRef = ref<HTMLElement | null>(null);
+let feedObserver: IntersectionObserver | null = null;
+
+/** 当前分类参数：全部 / 上传 传空，由后端兜底；其余传具体分类。 */
+function categoryParam(): string {
+  if (selected.value === "all" || selected.value === "uploads") return "";
+  return selected.value;
+}
+
+/** 视口尺寸交给后端推算批量（后端按列宽/行高估 1.5 倍窗口量）。 */
+function viewportSize(): { vw: number; vh: number } {
+  return {
+    vw: Math.round(gridW.value || Math.max(window.innerWidth - 40, 720)),
+    vh: Math.round(window.innerHeight)
+  };
+}
+
+/** 请求令牌：切分类时自增，旧响应一律丢弃，避免串会话。 */
+let feedToken = 0;
+let feedAbort: AbortController | null = null;
+
+async function refreshFolders(): Promise<void> {
+  try {
+    const res = await fetch("/api/v1/gallery/folders");
+    if (!res.ok) return;
+    const json = (await res.json()) as { folders?: GalleryFolder[] };
+    folders.value = json.folders ?? [];
+  } catch {
+    /* 轮询失败忽略 */
+  }
+}
+
+/** 拉取筛选区统计：只在首屏、收藏/删除、批次进度变化时调用 */
+async function loadStats(): Promise<void> {
+  try {
+    const res = await fetch("/api/v1/gallery/stats");
+    if (!res.ok) return;
+    stats.value = (await res.json()) as typeof stats.value;
+  } catch {
+    /* 统计失败不阻塞图库 */
+  }
+}
+
+/* ---------- 悬浮入口：打开画面分析工作流 ---------- */
+function openWorkflow(): void {
+  emit("open-workflow");
+}
+
 function schedulePoll() {
   window.clearTimeout(pollTimer);
   if (folderId.value || !folders.value.some((f) => f.status !== "done")) return;
-  pollTimer = window.setTimeout(() => { void loadItems(); }, 3000);
+  pollTimer = window.setTimeout(() => { void refreshFolders().then(schedulePoll); }, 3000);
 }
 
-async function loadItems() {
+/** 重建分页会话（切分类 / 进入文件夹 / 首次加载）。 */
+async function resetFeed(): Promise<void> {
+  // 筛选区统计与分页无关，顺带刷新一次（不阻塞）
+  void loadStats();
+  feedToken += 1;
+  const token = feedToken;
+  // 停掉上一轮请求，并解除“加载中”锁，否则新会话会被旧请求阻塞
+  feedAbort?.abort();
+  feedAbort = new AbortController();
+  feedLoading.value = false;
+  loading.value = true;
+  error.value = "";
+  feedExhausted.value = false;
+  feedSession.value = "";
   try {
-    error.value = "";
-    const res = await fetch("/api/v1/gallery/motionsites");
+    const res = await fetch(
+      `/api/v1/gallery/feed/meta?categories=${encodeURIComponent(categoryParam())}`,
+      { signal: feedAbort.signal }
+    );
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = (await res.json()) as GalleryData;
-    data.value = {
-      categories: json.categories ?? [],
-      items: json.items ?? [],
-      total: json.total ?? 0,
-      freeCount: json.freeCount ?? 0,
-      paidCount: json.paidCount ?? 0,
-      analysisCount: json.analysisCount ?? 0,
-      folders: json.folders ?? []
+    const meta = (await res.json()) as {
+      sessionId: string;
+      total: number;
+      categories: Array<{ name: string; total: number }>;
+      allCounts?: Array<{ name: string; total: number }>;
+      allCategories: string[];
+      folders: GalleryFolder[];
     };
-    // 「全部」里批次素材也打散显示；文件夹只在上传筛选里出现
-    ordered.value = interleave(json.items ?? []);
-    folders.value = json.folders ?? [];
-    loading.value = false;
+    // 过期会话响应：直接丢弃
+    if (token !== feedToken) return;
+    feedSession.value = meta.sessionId;
+    // tabs 用全量计数，避免只看单一分类时其他 tab 变成 0
+    const countSource = meta.allCounts ?? meta.categories;
+    feedTotals.value = Object.fromEntries(countSource.map((c) => [c.name, c.total]));
+    folders.value = meta.folders ?? [];
+    data.value = {
+      categories: meta.allCategories ?? [],
+      items: [],
+      total: meta.total ?? 0,
+      freeCount: 0,
+      paidCount: 0,
+      analysisCount: 0,
+      folders: meta.folders ?? []
+    };
+    ordered.value = [];
+    await loadMoreFeed();
     schedulePoll();
   } catch (e) {
+    if ((e as Error).name === "AbortError") return;
     error.value = (e as Error).message;
   } finally {
-    loading.value = false;
+    if (token === feedToken) loading.value = false;
   }
+}
+
+/** 追加一页：后端已保证不重复，前端只负责打散后追加。 */
+async function loadMoreFeed(): Promise<void> {
+  if (feedLoading.value || feedExhausted.value || !feedSession.value) return;
+  const token = feedToken;
+  const session = feedSession.value;
+  const { vw, vh } = viewportSize();
+  feedLoading.value = true;
+  try {
+    const res = await fetch(
+      `/api/v1/gallery/feed?session=${encodeURIComponent(session)}&vw=${vw}&vh=${vh}`,
+      { signal: feedAbort?.signal }
+    );
+    if (token !== feedToken) return;
+    if (res.status === 410) {
+      await resetFeed();
+      return;
+    }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const page = (await res.json()) as { items?: GalleryItem[]; exhausted?: boolean };
+    const incoming = page.items ?? [];
+    if (!data.value) return;
+    data.value.items = [...data.value.items, ...incoming];
+    // 每页先打散再追加，保证随机排布且不打断已显示内容
+    ordered.value = [...ordered.value, ...interleave(incoming)];
+    data.value.freeCount = data.value.items.filter((i) => i.free).length;
+    data.value.paidCount = data.value.items.length - data.value.freeCount;
+    data.value.analysisCount = data.value.items.filter((i) => i.hasAnalysis).length;
+    feedExhausted.value = Boolean(page.exhausted) || incoming.length === 0;
+  } catch (e) {
+    if ((e as Error).name === "AbortError") return;
+    error.value = (e as Error).message;
+  } finally {
+    if (token === feedToken) feedLoading.value = false;
+  }
+}
+
+function attachFeedObserver(): void {
+  feedObserver?.disconnect();
+  feedObserver = null;
+  const el = sentinelRef.value;
+  if (!el) return;
+  feedObserver = new IntersectionObserver(
+    (entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) void loadMoreFeed();
+    },
+    { rootMargin: "400px 0px" }
+  );
+  feedObserver.observe(el);
 }
 
 
 const items = computed(() => data.value?.items ?? []);
 const categories = computed(() => data.value?.categories ?? []);
-const analysisCount = computed(() => data.value?.analysisCount ?? 0);
-const favoriteCount = computed(() => items.value.filter((x) => x.favorite).length);
-const retryingCount = computed(() =>
-  items.value.filter((x) => Boolean(retryStates.value[keyOf(x)])).length
+/** 统计全部来自 /api/v1/gallery/stats，`?? ` 后的分支仅作接口失败时兜底 */
+const analysisCount = computed(() => stats.value?.analyzed ?? data.value?.analysisCount ?? 0);
+const favoriteCount = computed(
+  () => stats.value?.favorite ?? items.value.filter((x) => x.favorite).length
 );
-const needsUpdateCount = computed(() =>
-  items.value.filter((x) => Boolean(compareByKey.value[keyOf(x)])).length
+/** 重试中：来自服务端重试队列，与已加载卡片数无关 */
+const retryingCount = computed(() => Object.keys(retryStates.value).length);
+/** 需更新：后端按「存在 rerun 候选文件」全量统计，与已加载卡片数无关 */
+const needsUpdateCount = computed(
+  () =>
+    stats.value?.needsUpdate ??
+    items.value.filter((x) => Boolean(compareByKey.value[keyOf(x)])).length
 );
 const mobileFilterValue = computed(() =>
   statusFilter.value ? `status:${statusFilter.value}` : `cat:${selected.value}`
 );
 
-/** 分类 tabs 的计数：上传 = 文件夹 + 单张上传；确切分类 = 对应字典类别的单张/批次素材。 */
+/** 分类 tabs 的计数：全部来自 stats；上传 = 文件夹内素材 + 单张上传。 */
 function categoryCount(category: string): number {
   if (category === "uploads") {
+    const fromStats = stats.value?.uploads;
+    if (fromStats) return fromStats.folderItems + fromStats.singles;
     const batchIds = new Set(folders.value.map((f) => f.id));
     const singles = items.value.filter(
       (x) => x.category === "uploads" && !(x.batchId && batchIds.has(x.batchId))
@@ -461,6 +616,10 @@ function categoryCount(category: string): number {
     const folderItems = folders.value.reduce((sum, f) => sum + (f.total || 0), 0);
     return folderItems + singles;
   }
+  const fromStats = stats.value?.categories.find((c) => c.name === category)?.total;
+  if (typeof fromStats === "number") return fromStats;
+  const total = feedTotals.value[category];
+  if (typeof total === "number") return total;
   return items.value.filter((x) => effectiveCategoryOf(x) === category).length;
 }
 
@@ -519,6 +678,8 @@ async function toggleFavorite(item: GalleryItem, event: MouseEvent): Promise<voi
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = (await res.json()) as { favorite?: boolean };
     item.favorite = Boolean(data.favorite);
+    // 收藏数属于筛选区统计，单独刷新接口
+    void loadStats();
     flash(item.favorite ? "已标记为优质素材" : "已取消优质素材");
   } catch (err) {
     item.favorite = !next;
@@ -544,7 +705,7 @@ async function deleteUpload(item: GalleryItem) {
           : "这个文件夹已清空"
       );
     }
-    await loadItems();
+    await resetFeed();
   } catch (err) {
     alert(`删除失败：${(err as Error).message}`);
   }
@@ -779,7 +940,7 @@ async function chooseVersion(key: string, choice: "old" | "new"): Promise<void> 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     delete compareByKey.value[key];
     closeCompare();
-    await loadItems();
+    await resetFeed();
     flash(choice === "new" ? "已使用新分析结果" : "已保留当前分析结果");
   } catch (err) {
     flash(`应用失败：${(err as Error).message}`);
@@ -891,7 +1052,7 @@ async function syncRetryStatus(): Promise<void> {
 
     <nav class="cat-tabs">
       <div class="tab-list">
-        <button :class="{ active: selected === 'all' && !statusFilter }" @click="selectCategory('all')">全部 · {{ items.length }}</button>
+        <button :class="{ active: selected === 'all' && !statusFilter }" @click="selectCategory('all')">全部 · {{ stats?.total ?? data?.total ?? items.length }}</button>
         <button v-for="c in categories" :key="c" :class="{ active: selected === c && !statusFilter }" @click="selectCategory(c)">
           {{ catLabel(c) }} · {{ categoryCount(c) }}
         </button>
@@ -907,7 +1068,7 @@ async function syncRetryStatus(): Promise<void> {
         </button>
       </div>
       <select class="mobile-filter" :value="mobileFilterValue" aria-label="筛选" @change="onMobileFilterChange">
-        <option value="cat:all">全部 · {{ items.length }}</option>
+        <option value="cat:all">全部 · {{ stats?.total ?? data?.total ?? items.length }}</option>
         <optgroup label="分类">
           <option v-for="c in categories" :key="`cat:${c}`" :value="`cat:${c}`">{{ catLabel(c) }} · {{ categoryCount(c) }}</option>
         </optgroup>
@@ -917,7 +1078,6 @@ async function syncRetryStatus(): Promise<void> {
           <option v-if="retryEnabled" value="status:needs-update">需更新 · {{ needsUpdateCount }}</option>
         </optgroup>
       </select>
-      <button class="wf-entry" @click="emit('open-workflow')">⚙ 画面分析工作流</button>
     </nav>
 
     <div v-if="loading" class="loading">加载中…</div>
@@ -1038,6 +1198,23 @@ async function syncRetryStatus(): Promise<void> {
       </div>
     </div>
 
+    <div ref="sentinelRef" class="feed-sentinel" aria-live="polite">
+      <span v-if="feedLoading">加载更多…</span>
+      <span v-else-if="feedExhausted && items.length > 0">已经到底了</span>
+      <span v-else-if="error">{{ error }}</span>
+    </div>
+
+    <!-- 右下角悬浮入口：进入画面分析工作流 -->
+    <button
+      class="fab-upload"
+      type="button"
+      aria-label="上传图片进行分析"
+      title="上传图片进行分析"
+      @click="openWorkflow"
+    >
+      <span class="plus" aria-hidden="true">+</span>
+    </button>
+
     <!-- 重新分析版本对比 -->
     <div
       v-if="compareHover"
@@ -1130,6 +1307,15 @@ async function syncRetryStatus(): Promise<void> {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  /* 吸顶：紧贴 68px 高的顶部 banner */
+  position: sticky;
+  top: 68px;
+  z-index: 19;
+  padding: 10px 0;
+  margin: -10px 0;
+  background: rgb(12 14 17 / 92%);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgb(36 40 48 / 60%);
 }
 .tab-list {
   display: flex;
@@ -1208,6 +1394,43 @@ async function syncRetryStatus(): Promise<void> {
 .loading {
   color: #8f969f;
   font-size: 13px;
+}
+
+/* 懒加载哨兵：滚到底部前 400px 就会触发下一页 */
+.feed-sentinel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 18px 0 34px;
+  color: #6f767f;
+  font: 500 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.05em;
+}
+
+/* 悬浮入口：灵感页右下角圆形按钮，点击进入画面分析工作流 */
+.fab-upload {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  z-index: 30;
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #d9ff52;
+  color: #161b20;
+  box-shadow: 0 10px 26px rgb(0 0 0 / 45%);
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.fab-upload:hover {
+  transform: translateY(-2px) scale(1.04);
+}
+.fab-upload .plus {
+  font: 300 26px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 .toast {
