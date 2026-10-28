@@ -1,0 +1,31 @@
+# 远程后端专用编排：只跑 backend，前端在本地 dev-server 通过 proxy 访问
+# 用法：cd /root/aigc && docker compose -f deploy/docker-compose.remote.yml up -d --build
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.backend
+    image: deploy-backend:latest
+    container_name: aigc-backend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      # 默认 127.0.0.1 会导致外网无法访问，必须 0.0.0.0
+      - BACKEND_HOST=0.0.0.0
+      - BACKEND_PORT=3000
+      - FRONTEND_ORIGIN=${FRONTEND_ORIGIN:-http://localhost:5173}
+      # 密钥来自 deploy/.env（同目录下 compose 会自动读取）
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - RETRY_ENABLED=${RETRY_ENABLED:-true}
+      # 工作目录是 /app，需显式指定数据根目录
+      - DATA_ROOT=/app/backend/data
+    volumes:
+      - ../backend/data:/app/backend/data
+      - ../models:/models:ro
+    ports:
+      - "3000:3000"
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"

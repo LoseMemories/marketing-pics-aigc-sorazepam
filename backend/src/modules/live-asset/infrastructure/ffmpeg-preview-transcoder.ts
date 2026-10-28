@@ -53,6 +53,14 @@ export class FfmpegPreviewTranscoder implements PreviewTranscoder {
         // The bundled FFmpeg is the portable fallback when sips cannot decode a source.
       }
     }
+    // Linux/容器：ffmpeg 对 HEIF 容器只能拿到部分流（可能退到缩略图或半分辨率），
+    // 优先用 libheif 的 heif-convert 还原主图，失败再回退到 ffmpeg。
+    try {
+      await this.convertHeifToJpeg(sourcePath, destinationPath);
+      return;
+    } catch {
+      await rm(destinationPath, { force: true });
+    }
     await runCommand(this.ffmpegPath, [
       "-y",
       "-i",
@@ -65,6 +73,31 @@ export class FfmpegPreviewTranscoder implements PreviewTranscoder {
       "2",
       destinationPath
     ]);
+  }
+
+  /**
+   * heif-convert 取的是主图（primary image）全分辨率输出，但会保留 EXIF 方向；
+   * 因此再统一缩到最长边 2000px 并烘焙方向，与 macOS 的 sips 行为对齐。
+   */
+  private async convertHeifToJpeg(sourcePath: string, destinationPath: string): Promise<void> {
+    const rawPath = `${destinationPath}.heif.jpg`;
+    try {
+      await runCommand(this.heifConvertPath, [sourcePath, rawPath]);
+      await runCommand(this.ffmpegPath, [
+        "-y",
+        "-i",
+        rawPath,
+        "-vf",
+        "scale='min(2000,iw)':-2",
+        "-map_metadata",
+        "-1",
+        "-q:v",
+        "2",
+        destinationPath
+      ]);
+    } finally {
+      await rm(rawPath, { force: true });
+    }
   }
 
   /**
