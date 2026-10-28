@@ -13,7 +13,7 @@ RUN sed -i 's|deb.debian.org|mirrors.aliyun.com|g; s|security.debian.org|mirrors
       /etc/apt/sources.list /etc/apt/sources.list.d/*.sources 2>/dev/null || true
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      ca-certificates curl xz-utils git build-essential \
+      ca-certificates curl xz-utils git build-essential ffmpeg libheif-examples \
       libgl1 libglib2.0-0 libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
@@ -26,15 +26,15 @@ RUN curl -fsSL https://npmmirror.com/mirrors/node/v${NODE_VERSION}/node-v${NODE_
 
 WORKDIR /app
 
-# Python 依赖：PyPI 走清华源；torch 用 CPU 版（省 1.5GB）
-# 注：torch CPU wheel 不在 PyPI 主源，用 SJTU 的 pytorch 镜像
+# 注：torch 2.2.2 是用 NumPy 1.x 编译的，装 NumPy 2.x 会让 torch/easyocr 报 "Numpy is not available"
+# opencv 5.x 也要求 numpy>=2，因此一并固定到 4.10
 RUN pip3 config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple \
     && pip3 install --no-cache-dir \
       --index-url https://mirror.sjtu.edu.cn/pytorch-wheels/cpu \
       --extra-index-url https://pypi.tuna.tsinghua.edu.cn/simple \
       torch==2.2.2 torchvision==0.17.2 \
     && pip3 install --no-cache-dir \
-      numpy opencv-python-headless pillow easyocr segment-anything
+      "numpy==1.26.4" "opencv-python-headless==4.10.0.84" pillow easyocr segment-anything
 
 # Node 依赖
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -48,9 +48,18 @@ COPY . .
 RUN pnpm --filter @marketing-photo/backend build
 
 # 模型与数据都走 volume，不打进镜像
-ENV PYTHONPATH=/app/models \
+# ffmpeg-static 因 --ignore-scripts 不会下载二进制，统一用系统 ffmpeg
+# WORKFLOW_PYTHONPATH 指向镜像内 site-packages（仓库内 models/pylibs39 仅用于本地开发）
+ENV FFMPEG_PATH=/usr/bin/ffmpeg \
+    FFPROBE_PATH=/usr/bin/ffprobe \
+    HEIF_CONVERT_PATH=/usr/bin/heif-convert \
+    WORKFLOW_PYTHON=/usr/local/bin/python3 \
+    WORKFLOW_PYTHONPATH=/usr/local/lib/python3.9/site-packages \
+    WORKFLOW_MODELS_DIR=/models \
     SAM_CHECKPOINT=/models/sam_vit_b.pth \
-    EASYOCR_MODULE_PATH=/models/easyocr
+    EASYOCR_MODEL_DIR=/models/easyocr \
+    EASYOCR_NETWORK_DIR=/tmp/easyocr-network \
+    DATA_ROOT=/app/backend/data
 
 EXPOSE 3000
 CMD ["node", "backend/dist/runtime/main.js"]

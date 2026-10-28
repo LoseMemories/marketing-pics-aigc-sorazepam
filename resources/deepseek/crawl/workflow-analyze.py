@@ -341,7 +341,7 @@ def main():
     base = os.path.splitext(os.path.basename(img_path))[0]
 
     env = load_env()
-    key = env.get("DEEPSEEK_API_KEY")
+    key = env.get("DEEPSEEK_API_KEY") or os.environ.get("DEEPSEEK_API_KEY")
     img_pil = Image.open(img_path).convert("RGB")
     W, H = img_pil.size
 

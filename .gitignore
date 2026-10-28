@@ -21,6 +21,8 @@ backend/data/
 # 字体资源（后端 / 前端）
 backend/assets/fonts/
 frontend/public/fonts/
+# 静态字体目录已改名（/fonts 路由与目录同名会被 dev-server 301），忽略两代名称
+frontend/public/font-files/
 
 # 原始爬取素材（manifest.json 与图片一起不进仓库）
 resources/crawl-raw/

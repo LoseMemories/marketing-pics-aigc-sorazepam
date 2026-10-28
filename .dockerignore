@@ -6,3 +6,6 @@ backend/dist
 frontend/dist
 **/*.log
 **/.DS_Store
+# 模型与原始素材走 volume / 不进镜像
+models
+resources/crawl-raw

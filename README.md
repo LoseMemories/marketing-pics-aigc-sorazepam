@@ -76,6 +76,20 @@ pnpm dev
 - 后端：<http://127.0.0.1:3000>
 - 健康检查：<http://127.0.0.1:3000/health>
 
+### 本地 / 远程后端切换（开发期）
+
+dev-server 右上角有「后端 本地 | 远程」切换器，点击即时生效，无需重启：
+
+| 变量 | 默认值 | 说明 |
+| --- | --- | --- |
+| `LOCAL_BACKEND_TARGET` | `http://127.0.0.1:3000` | 本地后端地址 |
+| `REMOTE_BACKEND_TARGET` | `http://39.106.168.207:3000` | 远程后端地址 |
+| `DEFAULT_BACKEND` | `local` | 启动时默认选中哪个 |
+
+实现方式：`webpack.config.cjs` 用 `proxy.router` 在每次请求时读取当前目标，并提供
+`GET/POST /__backend` 控制接口（仅开发环境存在，生产构建下切换器自动隐藏）。
+切换后会整页重载，避免两个后端的图库与任务数据混用。
+
 Python 分析链路的依赖与权重默认放在仓库内 `models/`（结构见 `models/README.md`），无需额外配置：
 `models/pylibs39` 提供 Python 依赖，`models/sam_vit_b.pth` 是 SAM ViT-B 权重，
 `models/easyocr-model` 提供 OCR 权重。该目录体积约 1.8GB 且不入库，需按文档重建或从已有环境拷贝。

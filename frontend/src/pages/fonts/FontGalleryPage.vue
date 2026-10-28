@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { FONT_CATALOG } from "@/shared/fonts/font-catalog";
 import { kbOf } from "@/shared/fonts/font-tags";
 
@@ -21,7 +21,10 @@ function isFullZh(f: { name: string; lang: string }): boolean {
 // 只显示英文 + 完整中文；缺字的中文（日系字体）不显示
 const visible = computed(() => FONT_CATALOG.filter((f) => f.lang === "en" || isFullZh(f)));
 
-const items = computed(() => {
+const CHUNK = 24;
+
+/** 按分类过滤后的完整列表（懒加载的数据源） */
+const allItems = computed(() => {
   const base =
     selected.value === "all"
       ? visible.value
@@ -29,6 +32,55 @@ const items = computed(() => {
         ? visible.value.filter((f) => f.lang === "en")
         : visible.value.filter((f) => f.lang === "zh");
   return base.map((f) => ({ ...f, kb: kbOf(f.name) }));
+});
+
+const shuffled = ref<Array<(typeof allItems.value)[number]>>([]);
+const shown = ref(CHUNK);
+/** 当前只渲染已加载的部分，滚到底部再追加 */
+const items = computed(() => shuffled.value.slice(0, shown.value));
+
+const sentinelRef = ref<HTMLElement | null>(null);
+let observer: IntersectionObserver | null = null;
+
+/** 随机排布：切换分类时重排一次，避免同类字体扎堆 */
+function reshuffle(): void {
+  const list = [...allItems.value];
+  for (let i = list.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const a = list[i];
+    const b = list[j];
+    if (a === undefined || b === undefined) continue;
+    list[i] = b;
+    list[j] = a;
+  }
+  shuffled.value = list;
+  shown.value = CHUNK;
+}
+
+function attachObserver(): void {
+  observer?.disconnect();
+  observer = null;
+  const el = sentinelRef.value;
+  if (!el) return;
+  observer = new IntersectionObserver(
+    (entries) => {
+      if (entries.some((entry) => entry.isIntersecting) && shown.value < shuffled.value.length) {
+        shown.value += CHUNK;
+      }
+    },
+    { rootMargin: "500px 0px" }
+  );
+  observer.observe(el);
+}
+
+watch(selected, () => reshuffle(), { immediate: true });
+onMounted(async () => {
+  await nextTick();
+  attachObserver();
+});
+onBeforeUnmount(() => {
+  observer?.disconnect();
+  observer = null;
 });
 
 const enCount = computed(() => visible.value.filter((f) => f.lang === "en").length);
@@ -100,6 +152,11 @@ function defaultSample(lang: string): { a: string; b: string } {
         </div>
       </article>
     </div>
+
+    <div ref="sentinelRef" class="feed-sentinel" aria-live="polite">
+      <span v-if="shown < shuffled.length">加载更多…</span>
+      <span v-else>共 {{ allItems.length }} 款，已全部展示</span>
+    </div>
   </section>
 </template>
 
@@ -165,6 +222,17 @@ function defaultSample(lang: string): { a: string; b: string } {
 .cat-tabs button.active { border-color: #d9ff52; color: #11140c; background: #d9ff52; }
 
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+
+/* 懒加载哨兵：接近底部时自动追加下一批 */
+.feed-sentinel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  color: #6f767f;
+  font: 500 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.05em;
+}
 
 .card {
   display: flex;

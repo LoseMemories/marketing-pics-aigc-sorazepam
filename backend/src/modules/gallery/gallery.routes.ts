@@ -1,6 +1,8 @@
 import { readdir, readFile, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
 import path from "node:path";
 import type { FastifyInstance } from "fastify";
+import { currentCatalogVersion } from "./gallery-cache.js";
 
 // 动图（gif）先隐藏，资源保留；只列静态图
 const IMAGE_RE = /\.(webp|png|jpg|jpeg)$/i;
@@ -66,6 +68,8 @@ export interface GalleryItem {
   promptUrl: string | null;
   hasAnalysis: boolean;
   batchId: string | null;
+  /** 存在 `<base>.rerun.analysis.json` 重分析候选，等待对比采纳。 */
+  pendingRerun: boolean;
   /** 用户收藏 = 优质素材，沉淀知识库时映射为「是否优质素材」。 */
   favorite: boolean;
   /** 06 语汇分析给出的字典分类；未识别为 null（前端显示「未归类」）。 */
@@ -82,6 +86,18 @@ export interface GalleryItem {
     width: number;
     height: number;
   } | null;
+}
+
+/** 批量任务文件夹元信息（灵感库「批次」卡片）。 */
+export interface GalleryFolderMeta {
+  id: string;
+  title: string;
+  total: number;
+  done: number;
+  failed: number;
+  status: string;
+  createdAt: number;
+  cover: string | null;
 }
 
 /**
@@ -347,6 +363,8 @@ export async function registerGalleryRoutes(
         items.push({
           title: (meta.title as string) || (vocabulary ? base : base),
           batchId: (meta.batchId as string) ?? null,
+          // 全量判据：同目录存在候选重分析结果即算「需更新」（与 /reanalyze/compare 一致）
+          pendingRerun: files.includes(`${base}.rerun.analysis.json`),
           favorite: Boolean(meta.favorite),
           autoCategory: autoCategoryOf(meta),
           tags: Array.isArray(meta.tags) ? (meta.tags as string[]) : [],
@@ -376,6 +394,286 @@ export async function registerGalleryRoutes(
       analysisCount: items.filter((i) => i.hasAnalysis).length
     };
   });
+
+  /* ───────────────── 懒加载 feed ───────────────── */
+  /**
+   * 分页会话：每个分类维护一条已乱序队列 + 前进式游标。
+   * 游标只增不减 → 同一次浏览不可能重复拿到同一张图。
+   */
+  interface FeedSession {
+    id: string;
+    categories: string[];
+    queues: Map<string, GalleryItem[]>;
+    offsets: Map<string, number>;
+    lastAccess: number;
+  }
+
+  const FEED_TTL_MS = 10 * 60 * 1000;
+  const SCAN_TTL_MS = 30 * 1000;
+  const feedSessions = new Map<string, FeedSession>();
+  let scanCache:
+    | {
+        at: number;
+        version: number;
+        items: GalleryItem[];
+        folders: GalleryFolderMeta[];
+        categories: string[];
+      }
+    | null = null;
+
+  /** 复用既有扫描路由，避免把扫描逻辑写两份（同一响应格式）。 */
+  async function loadCatalog(): Promise<{
+    items: GalleryItem[];
+    folders: GalleryFolderMeta[];
+    categories: string[];
+  }> {
+    const version = currentCatalogVersion();
+    // 上传写入会 bump 版本号 → 缓存立即失效，不用等 TTL
+    if (scanCache && scanCache.version === version && Date.now() - scanCache.at < SCAN_TTL_MS) {
+      return scanCache;
+    }
+    const response = await app.inject({ method: "GET", url: "/api/v1/gallery/motionsites" });
+    const payload = response.json() as {
+      items: GalleryItem[];
+      folders: GalleryFolderMeta[];
+      categories: string[];
+    };
+    scanCache = {
+      at: Date.now(),
+      version,
+      items: payload.items,
+      folders: payload.folders,
+      categories: payload.categories
+    };
+    return scanCache;
+  }
+
+  function parseCategories(raw: unknown): string[] {
+    if (typeof raw !== "string") return [];
+    return raw
+      .split(",")
+      .map((value) => value.trim().toLowerCase())
+      .filter((value) => value.length > 0);
+  }
+
+  function shuffle<T>(input: T[]): T[] {
+    const list = [...input];
+    for (let i = list.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [list[i], list[j]] = [list[j] as T, list[i] as T];
+    }
+    return list;
+  }
+
+  function pruneSessions(): void {
+    const deadline = Date.now() - FEED_TTL_MS;
+    for (const [id, session] of feedSessions) {
+      if (session.lastAccess < deadline) feedSessions.delete(id);
+    }
+  }
+
+  /** 轻量：只取批次文件夹，供进度轮询用（不会重建分页会话）。 */
+  app.get("/api/v1/gallery/folders", async () => {
+    const catalog = await loadCatalog();
+    return { folders: catalog.folders };
+  });
+
+  /**
+   * 筛选区统计：一次性返回全量计数，与懒加载完全解耦。
+   * 前端只拉一次（以及收藏/删除后刷新），不随分页变化。
+   */
+  app.get("/api/v1/gallery/stats", async () => {
+    const catalog = await loadCatalog();
+    const folderIds = new Set(catalog.folders.map((folder) => folder.id));
+    const categories = catalog.categories.map((name) => ({
+      name,
+      total: catalog.items.filter((item) => item.category === name).length
+    }));
+    const uploadsSingles = catalog.items.filter(
+      (item) => item.category === "uploads" && !(item.batchId && folderIds.has(item.batchId))
+    ).length;
+    const folderItems = catalog.folders.reduce((sum, folder) => sum + (folder.total || 0), 0);
+
+    return {
+      total: catalog.items.length,
+      categories,
+      favorite: catalog.items.filter((item) => item.favorite).length,
+      analyzed: catalog.items.filter((item) => item.hasAnalysis).length,
+      needsUpdate: catalog.items.filter((item) => item.pendingRerun).length,
+      uploads: {
+        folders: catalog.folders.length,
+        folderItems,
+        singles: uploadsSingles
+      }
+    };
+  });
+
+  /**
+   * 第一步：拿总数与每个分类的可用量，并开启一个分页会话。
+   * categories 为空 → 后端兜底成「全部」分类。
+   */
+  app.get<{ Querystring: { categories?: string } }>(
+    "/api/v1/gallery/feed/meta",
+    async (request) => {
+      pruneSessions();
+      const catalog = await loadCatalog();
+      // 目录即分类（含 uploads）；空参数时默认全部
+      const available = catalog.categories;
+      const requested = parseCategories(request.query.categories).filter((name) =>
+        available.includes(name)
+      );
+      // 兜底：没传、传了不存在的、或全部过滤后为空 → 全部字典分类
+      const effective = requested.length > 0 ? requested : available;
+
+      const queues = new Map<string, GalleryItem[]>();
+      const offsets = new Map<string, number>();
+      const breakdown: Array<{ name: string; total: number }> = [];
+      for (const name of effective) {
+        const bucket = shuffle(catalog.items.filter((item) => item.category === name));
+        queues.set(name, bucket);
+        offsets.set(name, 0);
+        breakdown.push({ name, total: bucket.length });
+      }
+
+      const sessionId = randomUUID();
+      feedSessions.set(sessionId, {
+        id: sessionId,
+        categories: effective,
+        queues,
+        offsets,
+        lastAccess: Date.now()
+      });
+
+      // 全量分类计数：即使只查一个分类，前端 tabs 也能显示全局数量
+      const allCounts = available.map((name) => ({
+        name,
+        total: catalog.items.filter((item) => item.category === name).length
+      }));
+
+      return {
+        sessionId,
+        categories: breakdown,
+        allCounts,
+        total: breakdown.reduce((sum, entry) => sum + entry.total, 0),
+        allCategories: available,
+        folders: catalog.folders
+      };
+    }
+  );
+
+  /**
+   * 按可见窗口估算一批数量：列数由容器宽度决定，行数由视口高度决定，取 1.5 倍。
+   * 与前端行排布的常量保持一致（卡片最小宽 190、间距 16）。
+   */
+  function estimateBatchSize(viewportWidth?: number, viewportHeight?: number): number {
+    const CARD_MIN = 190;
+    const GAP = 16;
+    const width = Number.isFinite(viewportWidth) && (viewportWidth ?? 0) > 0 ? (viewportWidth as number) : 1440;
+    const height = Number.isFinite(viewportHeight) && (viewportHeight ?? 0) > 0 ? (viewportHeight as number) : 900;
+    const perRow = Math.max(2, Math.floor(width / (CARD_MIN + GAP)));
+    const rows = Math.max(2, Math.ceil(height / (CARD_MIN + GAP)));
+    return Math.min(120, Math.max(6, Math.ceil(perRow * rows * 1.5)));
+  }
+
+  /**
+   * 第二步：按配额取下一页。
+   * 配额按各分类「剩余量」等比分配（最大余额法补足），游标前进后不会重复。
+   * 批量大小：显式 limit 优先，否则用 vw/vh 推算 1.5 倍窗口量。
+   */
+  app.get<{ Querystring: { session?: string; limit?: string; vw?: string; vh?: string } }>(
+    "/api/v1/gallery/feed",
+    async (request, reply) => {
+      pruneSessions();
+      const session = feedSessions.get(String(request.query.session ?? ""));
+      if (!session) {
+        return reply.code(410).send({
+          error: {
+            code: "FEED_EXPIRED",
+            message: "分页会话已过期，请重新加载图库。",
+            details: {}
+          }
+        });
+      }
+      session.lastAccess = Date.now();
+
+      const explicitLimit = Number(request.query.limit);
+      const limit = Number.isFinite(explicitLimit) && explicitLimit > 0
+        ? Math.min(Math.max(Math.trunc(explicitLimit), 1), 120)
+        : estimateBatchSize(Number(request.query.vw), Number(request.query.vh));
+
+      const remaining = new Map<string, number>();
+      let totalRemaining = 0;
+      for (const [name, queue] of session.queues) {
+        const left = Math.max(0, queue.length - (session.offsets.get(name) ?? 0));
+        remaining.set(name, left);
+        totalRemaining += left;
+      }
+
+      const target = Math.min(limit, totalRemaining);
+      const quotas = new Map<string, number>();
+      const fractions: Array<{ name: string; fraction: number }> = [];
+      let assigned = 0;
+      if (target > 0) {
+        for (const [name, left] of remaining) {
+          if (left <= 0) continue;
+          const exact = (target * left) / totalRemaining;
+          const base = Math.floor(exact);
+          quotas.set(name, base);
+          assigned += base;
+          fractions.push({ name, fraction: exact - base });
+        }
+        // 至少让还有余量的分类各出 1 张，保证随机排布有分类多样性
+        if (target >= fractions.length) {
+          for (const { name } of fractions) {
+            if ((quotas.get(name) ?? 0) > 0) continue;
+            if (assigned >= target) break;
+            quotas.set(name, 1);
+            assigned += 1;
+          }
+        }
+        fractions.sort((a, b) => b.fraction - a.fraction);
+        let index = 0;
+        while (assigned < target && fractions.length > 0) {
+          const entry = fractions[index % fractions.length];
+          if (!entry) break;
+          const name = entry.name;
+          const left = remaining.get(name) ?? 0;
+          if ((quotas.get(name) ?? 0) < left) {
+            quotas.set(name, (quotas.get(name) ?? 0) + 1);
+            assigned += 1;
+          }
+          index += 1;
+          if (index > target + fractions.length * 2) break;
+        }
+      }
+
+      const items: GalleryItem[] = [];
+      const picked: Array<{ name: string; returned: number; total: number; taken: number }> = [];
+      for (const name of session.categories) {
+        const queue = session.queues.get(name) ?? [];
+        const offset = session.offsets.get(name) ?? 0;
+        const quota = quotas.get(name) ?? 0;
+        const slice = quota > 0 ? queue.slice(offset, offset + quota) : [];
+        session.offsets.set(name, offset + slice.length);
+        items.push(...slice);
+        picked.push({
+          name,
+          returned: slice.length,
+          total: queue.length,
+          taken: offset + slice.length
+        });
+      }
+
+      const exhausted = picked.every((entry) => entry.taken >= entry.total);
+      return {
+        session: session.id,
+        items,
+        counts: picked,
+        returned: items.length,
+        exhausted
+      };
+    }
+  );
 
   /** 收藏 = 优质素材达标；写回同名 meta.json，供后续知识库打「是否优质素材」标签。 */
   app.post("/api/v1/gallery/motionsites/:category/:file/favorite", async (request, reply) => {
