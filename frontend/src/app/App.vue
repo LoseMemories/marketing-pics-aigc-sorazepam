@@ -5,6 +5,7 @@ import GalleryPage from "@/pages/gallery/GalleryPage.vue";
 import FontGalleryPage from "@/pages/fonts/FontGalleryPage.vue";
 import WorkflowPage from "@/pages/workflow/WorkflowPage.vue";
 import DocsPage from "@/pages/docs/DocsPage.vue";
+import BackendSwitcher from "@/shared/components/BackendSwitcher.vue";
 
 type View = "workbench" | "gallery" | "fonts" | "workflow" | "docs";
 
@@ -16,14 +17,27 @@ const PATHS: Record<View, string> = {
   docs: "/docs"
 };
 
-function viewFromPath(path: string): View {
+/** 解析路径首段 → 视图；未知段返回 null（由调用方决定兜底）。 */
+function knownViewFromPath(path: string): View | null {
   const seg = path.replace(/\/+$/, "").split("/").filter(Boolean)[0] ?? "";
   if (!seg) return "workbench";
-  const hit = (Object.keys(PATHS) as View[]).find((v) => PATHS[v].replace(/^\//, "") === seg);
-  return hit ?? "workbench";
+  return (Object.keys(PATHS) as View[]).find((v) => PATHS[v].replace(/^\//, "") === seg) ?? null;
 }
 
-const view = ref<View>(viewFromPath(location.pathname));
+const view = ref<View>("workbench");
+
+/** 未知路由 → 重置到首页，并把地址栏一起改掉（replace，不污染历史） */
+function syncRouteFromLocation(): void {
+  const next = knownViewFromPath(location.pathname);
+  if (next === null) {
+    history.replaceState({ v: "workbench" }, "", PATHS.workbench);
+    view.value = "workbench";
+    return;
+  }
+  view.value = next;
+}
+
+syncRouteFromLocation();
 
 /** 前端路由：pushState + popstate，浏览器前进/后退可用 */
 function go(v: View, replace = false) {
@@ -39,9 +53,7 @@ function back() {
   else go("gallery", true);
 }
 
-window.addEventListener("popstate", () => {
-  view.value = viewFromPath(location.pathname);
-});
+window.addEventListener("popstate", syncRouteFromLocation);
 </script>
 
 <template>
@@ -94,6 +106,7 @@ window.addEventListener("popstate", () => {
         <button :class="{ active: view === 'fonts' }" @click="go('fonts')">字体库</button>
         <button :class="{ active: view === 'docs' }" @click="go('docs')">产品文档</button>
       </nav>
+      <BackendSwitcher class="banner-backend" />
     </header>
 
     <LiveWorkbenchPage v-if="view === 'workbench'" />
@@ -127,6 +140,10 @@ window.addEventListener("popstate", () => {
   font: 600 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
   letter-spacing: 0.07em;
   text-decoration: none;
+}
+
+.banner-backend {
+  margin-left: auto;
 }
 .brand b { color: #d9ff52; }
 .heat-mark {

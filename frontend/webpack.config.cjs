@@ -3,7 +3,17 @@ const webpack = require("webpack");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { VueLoaderPlugin } = require("vue-loader");
 const frontendPort = Number(process.env.FRONTEND_PORT || 5173);
-const apiProxyTarget = process.env.API_PROXY_TARGET || "http://127.0.0.1:3000";
+
+// 可切换的后端目标：默认本地，可在页面右上角实时切换（不走重启）
+const backendOptions = {
+  local: process.env.LOCAL_BACKEND_TARGET || "http://127.0.0.1:3000",
+  remote: process.env.REMOTE_BACKEND_TARGET || "http://39.106.168.207:3000"
+};
+// 兼容旧用法：API_PROXY_TARGET 显式指定时视为远程目标并直接选中
+if (process.env.API_PROXY_TARGET) {
+  backendOptions.remote = process.env.API_PROXY_TARGET;
+}
+let activeBackend = process.env.DEFAULT_BACKEND === "remote" || process.env.API_PROXY_TARGET ? "remote" : "local";
 
 module.exports = (_env, argv) => ({
   mode: argv.mode || "development",
@@ -66,10 +76,29 @@ module.exports = (_env, argv) => ({
         runtimeErrors: (err) => !/ResizeObserver loop/i.test(String(err?.message ?? err))
       }
     },
+    // /__backend：切换代理目标（仅开发环境，生产构建里不存在）
+    setupMiddlewares: (middlewares, devServer) => {
+      if (!devServer?.app) return middlewares;
+      devServer.app.get("/__backend", (_request, response) => {
+        response.json({ active: activeBackend, options: backendOptions });
+      });
+      devServer.app.post("/__backend", (request, response) => {
+        const name = String(request.query.name ?? "");
+        if (!Object.prototype.hasOwnProperty.call(backendOptions, name)) {
+          response.status(400).json({ error: `unknown backend: ${name}` });
+          return;
+        }
+        activeBackend = name;
+        response.json({ active: activeBackend, url: backendOptions[activeBackend] });
+      });
+      return middlewares;
+    },
     proxy: [
       {
         context: ["/api", "/media", "/health", "/gallery"],
-        target: apiProxyTarget,
+        target: backendOptions[activeBackend],
+        // router 每次请求时求值，因此切换后无需重启 dev-server
+        router: () => backendOptions[activeBackend],
         changeOrigin: true
       }
     ]
