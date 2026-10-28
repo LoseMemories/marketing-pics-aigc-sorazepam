@@ -106,6 +106,11 @@ Git 只保存源码、README、产品文档与项目环境配置；以下大体�
 - `backend/.env.local` 保存本地密钥，不提交到 Git；提交时用 `.env.example` 作为模板。
 - `backend/data/` 已整体忽略，`live-assets/`、`incoming/` 等运行时生成目录无需单独配置。
 
+## 分支管理
+
+每次改动从最新 `master` 切出独立分支（类型按任务性质选择：`feature/`、`fix/`、`docs/`、`chore/`、`refactor/` 等），
+合并进 `master` 后**保留开发分支**不删除。完整规范与命令见 [`docs/GIT_BRANCHING.md`](docs/GIT_BRANCHING.md)。
+
 ## 检查
 
 ```bash
