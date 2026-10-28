@@ -1,0 +1,9 @@
+packages:
+  - backend
+  - frontend
+allowBuilds:
+  core-js: true
+  esbuild: true
+  ffmpeg-static: true
+  protobufjs: true
+  sharp: true

@@ -1,0 +1,2649 @@
+[
+ {
+  "id": "b000",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/beauty_01.webp",
+    "out": "crawl-raw/magazine/beauty_01.analysis.json",
+    "basename": "beauty_01",
+    "width": 500,
+    "height": 640,
+    "ratio": "25:32",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/beauty_02.webp",
+    "out": "crawl-raw/magazine/beauty_02.analysis.json",
+    "basename": "beauty_02",
+    "width": 500,
+    "height": 667,
+    "ratio": "500:667",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/beauty_03.webp",
+    "out": "crawl-raw/magazine/beauty_03.analysis.json",
+    "basename": "beauty_03",
+    "width": 500,
+    "height": 625,
+    "ratio": "4:5",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b001",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/beauty_04.webp",
+    "out": "crawl-raw/magazine/beauty_04.analysis.json",
+    "basename": "beauty_04",
+    "width": 500,
+    "height": 641,
+    "ratio": "500:641",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/beauty_05.webp",
+    "out": "crawl-raw/magazine/beauty_05.analysis.json",
+    "basename": "beauty_05",
+    "width": 500,
+    "height": 625,
+    "ratio": "4:5",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/beauty_06.webp",
+    "out": "crawl-raw/magazine/beauty_06.analysis.json",
+    "basename": "beauty_06",
+    "width": 356,
+    "height": 500,
+    "ratio": "89:125",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b002",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/beauty_07.webp",
+    "out": "crawl-raw/magazine/beauty_07.analysis.json",
+    "basename": "beauty_07",
+    "width": 500,
+    "height": 663,
+    "ratio": "500:663",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/beauty_08.jpg",
+    "out": "crawl-raw/magazine/beauty_08.analysis.json",
+    "basename": "beauty_08",
+    "width": 384,
+    "height": 500,
+    "ratio": "96:125",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/beauty_09.webp",
+    "out": "crawl-raw/magazine/beauty_09.analysis.json",
+    "basename": "beauty_09",
+    "width": 500,
+    "height": 625,
+    "ratio": "4:5",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b003",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/beauty_10.webp",
+    "out": "crawl-raw/magazine/beauty_10.analysis.json",
+    "basename": "beauty_10",
+    "width": 800,
+    "height": 1025,
+    "ratio": "32:41",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/beauty_11.webp",
+    "out": "crawl-raw/magazine/beauty_11.analysis.json",
+    "basename": "beauty_11",
+    "width": 800,
+    "height": 1202,
+    "ratio": "400:601",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/beauty_12.webp",
+    "out": "crawl-raw/magazine/beauty_12.analysis.json",
+    "basename": "beauty_12",
+    "width": 500,
+    "height": 613,
+    "ratio": "500:613",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b004",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/beauty_13.webp",
+    "out": "crawl-raw/magazine/beauty_13.analysis.json",
+    "basename": "beauty_13",
+    "width": 500,
+    "height": 666,
+    "ratio": "250:333",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/beauty_14.webp",
+    "out": "crawl-raw/magazine/beauty_14.analysis.json",
+    "basename": "beauty_14",
+    "width": 500,
+    "height": 648,
+    "ratio": "125:162",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/beauty_15.webp",
+    "out": "crawl-raw/magazine/beauty_15.analysis.json",
+    "basename": "beauty_15",
+    "width": 500,
+    "height": 653,
+    "ratio": "500:653",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b005",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/beauty_16.webp",
+    "out": "crawl-raw/magazine/beauty_16.analysis.json",
+    "basename": "beauty_16",
+    "width": 500,
+    "height": 640,
+    "ratio": "25:32",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/beauty_17.webp",
+    "out": "crawl-raw/magazine/beauty_17.analysis.json",
+    "basename": "beauty_17",
+    "width": 500,
+    "height": 643,
+    "ratio": "500:643",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/beauty_18.webp",
+    "out": "crawl-raw/magazine/beauty_18.analysis.json",
+    "basename": "beauty_18",
+    "width": 500,
+    "height": 659,
+    "ratio": "500:659",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b006",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/beauty_19.jpg",
+    "out": "crawl-raw/magazine/beauty_19.analysis.json",
+    "basename": "beauty_19",
+    "width": 500,
+    "height": 667,
+    "ratio": "500:667",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/beauty_20.webp",
+    "out": "crawl-raw/magazine/beauty_20.analysis.json",
+    "basename": "beauty_20",
+    "width": 800,
+    "height": 1015,
+    "ratio": "160:203",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/harpersbazaar_01_linqin.webp",
+    "out": "crawl-raw/magazine/harpersbazaar_01_linqin.analysis.json",
+    "basename": "harpersbazaar_01_linqin",
+    "width": 500,
+    "height": 663,
+    "ratio": "500:663",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b007",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/harpersbazaar_02_liushishi.webp",
+    "out": "crawl-raw/magazine/harpersbazaar_02_liushishi.analysis.json",
+    "basename": "harpersbazaar_02_liushishi",
+    "width": 500,
+    "height": 646,
+    "ratio": "250:323",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/harpersbazaar_03_jingboran.webp",
+    "out": "crawl-raw/magazine/harpersbazaar_03_jingboran.analysis.json",
+    "basename": "harpersbazaar_03_jingboran",
+    "width": 500,
+    "height": 644,
+    "ratio": "125:161",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/harpersbazaar_04_liuyifei_2026.webp",
+    "out": "crawl-raw/magazine/harpersbazaar_04_liuyifei_2026.analysis.json",
+    "basename": "harpersbazaar_04_liuyifei_2026",
+    "width": 500,
+    "height": 654,
+    "ratio": "250:327",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b008",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/harpersbazaar_05_dilireba.webp",
+    "out": "crawl-raw/magazine/harpersbazaar_05_dilireba.analysis.json",
+    "basename": "harpersbazaar_05_dilireba",
+    "width": 500,
+    "height": 654,
+    "ratio": "250:327",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/harpersbazaar_06_liuyifei.webp",
+    "out": "crawl-raw/magazine/harpersbazaar_06_liuyifei.analysis.json",
+    "basename": "harpersbazaar_06_liuyifei",
+    "width": 500,
+    "height": 654,
+    "ratio": "250:327",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/harpersbazaar_07_kimhyesoo_korea.webp",
+    "out": "crawl-raw/magazine/harpersbazaar_07_kimhyesoo_korea.analysis.json",
+    "basename": "harpersbazaar_07_kimhyesoo_korea",
+    "width": 500,
+    "height": 625,
+    "ratio": "4:5",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b009",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/harpersbazaar_08_guailling.webp",
+    "out": "crawl-raw/magazine/harpersbazaar_08_guailling.analysis.json",
+    "basename": "harpersbazaar_08_guailling",
+    "width": 800,
+    "height": 1033,
+    "ratio": "800:1033",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/harpersbazaar_09_libingbing.webp",
+    "out": "crawl-raw/magazine/harpersbazaar_09_libingbing.analysis.json",
+    "basename": "harpersbazaar_09_libingbing",
+    "width": 384,
+    "height": 500,
+    "ratio": "96:125",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/harpersbazaar_10_nini.webp",
+    "out": "crawl-raw/magazine/harpersbazaar_10_nini.analysis.json",
+    "basename": "harpersbazaar_10_nini",
+    "width": 500,
+    "height": 654,
+    "ratio": "250:327",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b010",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/harpersbazaar_11.webp",
+    "out": "crawl-raw/magazine/harpersbazaar_11.analysis.json",
+    "basename": "harpersbazaar_11",
+    "width": 500,
+    "height": 639,
+    "ratio": "500:639",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/harpersbazaar_12.webp",
+    "out": "crawl-raw/magazine/harpersbazaar_12.analysis.json",
+    "basename": "harpersbazaar_12",
+    "width": 500,
+    "height": 655,
+    "ratio": "100:131",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/harpersbazaar_13.webp",
+    "out": "crawl-raw/magazine/harpersbazaar_13.analysis.json",
+    "basename": "harpersbazaar_13",
+    "width": 500,
+    "height": 654,
+    "ratio": "250:327",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b011",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/harpersbazaar_14.webp",
+    "out": "crawl-raw/magazine/harpersbazaar_14.analysis.json",
+    "basename": "harpersbazaar_14",
+    "width": 500,
+    "height": 654,
+    "ratio": "250:327",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/harpersbazaar_15.webp",
+    "out": "crawl-raw/magazine/harpersbazaar_15.analysis.json",
+    "basename": "harpersbazaar_15",
+    "width": 500,
+    "height": 671,
+    "ratio": "500:671",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/harpersbazaar_16.jpg",
+    "out": "crawl-raw/magazine/harpersbazaar_16.analysis.json",
+    "basename": "harpersbazaar_16",
+    "width": 500,
+    "height": 625,
+    "ratio": "4:5",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b012",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/harpersbazaar_17.webp",
+    "out": "crawl-raw/magazine/harpersbazaar_17.analysis.json",
+    "basename": "harpersbazaar_17",
+    "width": 500,
+    "height": 640,
+    "ratio": "25:32",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/harpersbazaar_18.webp",
+    "out": "crawl-raw/magazine/harpersbazaar_18.analysis.json",
+    "basename": "harpersbazaar_18",
+    "width": 500,
+    "height": 625,
+    "ratio": "4:5",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/harpersbazaar_19.webp",
+    "out": "crawl-raw/magazine/harpersbazaar_19.analysis.json",
+    "basename": "harpersbazaar_19",
+    "width": 500,
+    "height": 653,
+    "ratio": "500:653",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b013",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/harpersbazaar_20.webp",
+    "out": "crawl-raw/magazine/harpersbazaar_20.analysis.json",
+    "basename": "harpersbazaar_20",
+    "width": 500,
+    "height": 654,
+    "ratio": "250:327",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/national_geographic_01.webp",
+    "out": "crawl-raw/magazine/national_geographic_01.analysis.json",
+    "basename": "national_geographic_01",
+    "width": 500,
+    "height": 691,
+    "ratio": "500:691",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/national_geographic_02.webp",
+    "out": "crawl-raw/magazine/national_geographic_02.analysis.json",
+    "basename": "national_geographic_02",
+    "width": 500,
+    "height": 689,
+    "ratio": "500:689",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b014",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/national_geographic_06.webp",
+    "out": "crawl-raw/magazine/national_geographic_06.analysis.json",
+    "basename": "national_geographic_06",
+    "width": 500,
+    "height": 667,
+    "ratio": "500:667",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/national_geographic_07.webp",
+    "out": "crawl-raw/magazine/national_geographic_07.analysis.json",
+    "basename": "national_geographic_07",
+    "width": 500,
+    "height": 708,
+    "ratio": "125:177",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/national_geographic_08.webp",
+    "out": "crawl-raw/magazine/national_geographic_08.analysis.json",
+    "basename": "national_geographic_08",
+    "width": 500,
+    "height": 721,
+    "ratio": "500:721",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b015",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/national_geographic_09.webp",
+    "out": "crawl-raw/magazine/national_geographic_09.analysis.json",
+    "basename": "national_geographic_09",
+    "width": 469,
+    "height": 600,
+    "ratio": "469:600",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/national_geographic_10.jpg",
+    "out": "crawl-raw/magazine/national_geographic_10.analysis.json",
+    "basename": "national_geographic_10",
+    "width": 500,
+    "height": 689,
+    "ratio": "500:689",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/national_geographic_11.jpg",
+    "out": "crawl-raw/magazine/national_geographic_11.analysis.json",
+    "basename": "national_geographic_11",
+    "width": 500,
+    "height": 689,
+    "ratio": "500:689",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b016",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/national_geographic_13.jpg",
+    "out": "crawl-raw/magazine/national_geographic_13.analysis.json",
+    "basename": "national_geographic_13",
+    "width": 500,
+    "height": 689,
+    "ratio": "500:689",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/national_geographic_18.jpg",
+    "out": "crawl-raw/magazine/national_geographic_18.analysis.json",
+    "basename": "national_geographic_18",
+    "width": 500,
+    "height": 646,
+    "ratio": "250:323",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/national_geographic_19.jpg",
+    "out": "crawl-raw/magazine/national_geographic_19.analysis.json",
+    "basename": "national_geographic_19",
+    "width": 500,
+    "height": 650,
+    "ratio": "10:13",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b017",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/national_geographic_20.webp",
+    "out": "crawl-raw/magazine/national_geographic_20.analysis.json",
+    "basename": "national_geographic_20",
+    "width": 500,
+    "height": 667,
+    "ratio": "500:667",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/technology_01.webp",
+    "out": "crawl-raw/magazine/technology_01.analysis.json",
+    "basename": "technology_01",
+    "width": 500,
+    "height": 681,
+    "ratio": "500:681",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/technology_02.jpg",
+    "out": "crawl-raw/magazine/technology_02.analysis.json",
+    "basename": "technology_02",
+    "width": 375,
+    "height": 500,
+    "ratio": "3:4",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b018",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/technology_03.jpg",
+    "out": "crawl-raw/magazine/technology_03.analysis.json",
+    "basename": "technology_03",
+    "width": 398,
+    "height": 500,
+    "ratio": "199:250",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/technology_04.jpg",
+    "out": "crawl-raw/magazine/technology_04.analysis.json",
+    "basename": "technology_04",
+    "width": 414,
+    "height": 500,
+    "ratio": "207:250",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/technology_05.webp",
+    "out": "crawl-raw/magazine/technology_05.analysis.json",
+    "basename": "technology_05",
+    "width": 375,
+    "height": 500,
+    "ratio": "3:4",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b019",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/technology_06.webp",
+    "out": "crawl-raw/magazine/technology_06.analysis.json",
+    "basename": "technology_06",
+    "width": 475,
+    "height": 637,
+    "ratio": "475:637",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/technology_07.webp",
+    "out": "crawl-raw/magazine/technology_07.analysis.json",
+    "basename": "technology_07",
+    "width": 500,
+    "height": 666,
+    "ratio": "250:333",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/technology_08.webp",
+    "out": "crawl-raw/magazine/technology_08.analysis.json",
+    "basename": "technology_08",
+    "width": 367,
+    "height": 500,
+    "ratio": "367:500",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b020",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/technology_09.jpg",
+    "out": "crawl-raw/magazine/technology_09.analysis.json",
+    "basename": "technology_09",
+    "width": 416,
+    "height": 500,
+    "ratio": "104:125",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/technology_10.jpg",
+    "out": "crawl-raw/magazine/technology_10.analysis.json",
+    "basename": "technology_10",
+    "width": 404,
+    "height": 500,
+    "ratio": "101:125",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/technology_11.webp",
+    "out": "crawl-raw/magazine/technology_11.analysis.json",
+    "basename": "technology_11",
+    "width": 500,
+    "height": 687,
+    "ratio": "500:687",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b021",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/technology_12.jpg",
+    "out": "crawl-raw/magazine/technology_12.analysis.json",
+    "basename": "technology_12",
+    "width": 411,
+    "height": 500,
+    "ratio": "411:500",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/technology_13.jpg",
+    "out": "crawl-raw/magazine/technology_13.analysis.json",
+    "basename": "technology_13",
+    "width": 367,
+    "height": 500,
+    "ratio": "367:500",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/technology_14.webp",
+    "out": "crawl-raw/magazine/technology_14.analysis.json",
+    "basename": "technology_14",
+    "width": 500,
+    "height": 675,
+    "ratio": "20:27",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b022",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/technology_16.webp",
+    "out": "crawl-raw/magazine/technology_16.analysis.json",
+    "basename": "technology_16",
+    "width": 500,
+    "height": 685,
+    "ratio": "100:137",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/technology_17.jpg",
+    "out": "crawl-raw/magazine/technology_17.analysis.json",
+    "basename": "technology_17",
+    "width": 361,
+    "height": 500,
+    "ratio": "361:500",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/technology_18.jpg",
+    "out": "crawl-raw/magazine/technology_18.analysis.json",
+    "basename": "technology_18",
+    "width": 375,
+    "height": 500,
+    "ratio": "3:4",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b023",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/technology_19.webp",
+    "out": "crawl-raw/magazine/technology_19.analysis.json",
+    "basename": "technology_19",
+    "width": 500,
+    "height": 681,
+    "ratio": "500:681",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/travel_01.jpg",
+    "out": "crawl-raw/magazine/travel_01.analysis.json",
+    "basename": "travel_01",
+    "width": 388,
+    "height": 500,
+    "ratio": "97:125",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/travel_02.webp",
+    "out": "crawl-raw/magazine/travel_02.analysis.json",
+    "basename": "travel_02",
+    "width": 500,
+    "height": 649,
+    "ratio": "500:649",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b024",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/travel_03.webp",
+    "out": "crawl-raw/magazine/travel_03.analysis.json",
+    "basename": "travel_03",
+    "width": 500,
+    "height": 612,
+    "ratio": "125:153",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/travel_05.jpg",
+    "out": "crawl-raw/magazine/travel_05.analysis.json",
+    "basename": "travel_05",
+    "width": 381,
+    "height": 500,
+    "ratio": "381:500",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/travel_06.jpg",
+    "out": "crawl-raw/magazine/travel_06.analysis.json",
+    "basename": "travel_06",
+    "width": 397,
+    "height": 500,
+    "ratio": "397:500",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b025",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/travel_07.webp",
+    "out": "crawl-raw/magazine/travel_07.analysis.json",
+    "basename": "travel_07",
+    "width": 383,
+    "height": 500,
+    "ratio": "383:500",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/travel_08.webp",
+    "out": "crawl-raw/magazine/travel_08.analysis.json",
+    "basename": "travel_08",
+    "width": 500,
+    "height": 652,
+    "ratio": "125:163",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/travel_09.jpg",
+    "out": "crawl-raw/magazine/travel_09.analysis.json",
+    "basename": "travel_09",
+    "width": 382,
+    "height": 500,
+    "ratio": "191:250",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b026",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/travel_10.jpg",
+    "out": "crawl-raw/magazine/travel_10.analysis.json",
+    "basename": "travel_10",
+    "width": 384,
+    "height": 500,
+    "ratio": "96:125",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/travel_11.webp",
+    "out": "crawl-raw/magazine/travel_11.analysis.json",
+    "basename": "travel_11",
+    "width": 500,
+    "height": 623,
+    "ratio": "500:623",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/travel_12.webp",
+    "out": "crawl-raw/magazine/travel_12.analysis.json",
+    "basename": "travel_12",
+    "width": 500,
+    "height": 665,
+    "ratio": "100:133",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b027",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/travel_13.webp",
+    "out": "crawl-raw/magazine/travel_13.analysis.json",
+    "basename": "travel_13",
+    "width": 800,
+    "height": 928,
+    "ratio": "25:29",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/travel_14.webp",
+    "out": "crawl-raw/magazine/travel_14.analysis.json",
+    "basename": "travel_14",
+    "width": 500,
+    "height": 649,
+    "ratio": "500:649",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/travel_15.webp",
+    "out": "crawl-raw/magazine/travel_15.analysis.json",
+    "basename": "travel_15",
+    "width": 500,
+    "height": 649,
+    "ratio": "500:649",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b028",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/travel_16.webp",
+    "out": "crawl-raw/magazine/travel_16.analysis.json",
+    "basename": "travel_16",
+    "width": 500,
+    "height": 667,
+    "ratio": "500:667",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/travel_17.webp",
+    "out": "crawl-raw/magazine/travel_17.analysis.json",
+    "basename": "travel_17",
+    "width": 500,
+    "height": 651,
+    "ratio": "500:651",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/travel_18.webp",
+    "out": "crawl-raw/magazine/travel_18.analysis.json",
+    "basename": "travel_18",
+    "width": 500,
+    "height": 667,
+    "ratio": "500:667",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b029",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/travel_19.webp",
+    "out": "crawl-raw/magazine/travel_19.analysis.json",
+    "basename": "travel_19",
+    "width": 500,
+    "height": 667,
+    "ratio": "500:667",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/travel_20.webp",
+    "out": "crawl-raw/magazine/travel_20.analysis.json",
+    "basename": "travel_20",
+    "width": 800,
+    "height": 1063,
+    "ratio": "800:1063",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/vogue_01_kaiagerber.webp",
+    "out": "crawl-raw/magazine/vogue_01_kaiagerber.analysis.json",
+    "basename": "vogue_01_kaiagerber",
+    "width": 500,
+    "height": 604,
+    "ratio": "125:151",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b030",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/vogue_02_bestcover.webp",
+    "out": "crawl-raw/magazine/vogue_02_bestcover.analysis.json",
+    "basename": "vogue_02_bestcover",
+    "width": 800,
+    "height": 1052,
+    "ratio": "200:263",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/vogue_03_bestcover.webp",
+    "out": "crawl-raw/magazine/vogue_03_bestcover.analysis.json",
+    "basename": "vogue_03_bestcover",
+    "width": 500,
+    "height": 666,
+    "ratio": "250:333",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/vogue_04_classiccover.webp",
+    "out": "crawl-raw/magazine/vogue_04_classiccover.analysis.json",
+    "basename": "vogue_04_classiccover",
+    "width": 500,
+    "height": 667,
+    "ratio": "500:667",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b031",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/vogue_05_actresses.webp",
+    "out": "crawl-raw/magazine/vogue_05_actresses.analysis.json",
+    "basename": "vogue_05_actresses",
+    "width": 500,
+    "height": 653,
+    "ratio": "500:653",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/vogue_06_komatsunana_taiwan.webp",
+    "out": "crawl-raw/magazine/vogue_06_komatsunana_taiwan.analysis.json",
+    "basename": "vogue_06_komatsunana_taiwan",
+    "width": 500,
+    "height": 688,
+    "ratio": "125:172",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/vogue_07_1950s.webp",
+    "out": "crawl-raw/magazine/vogue_07_1950s.analysis.json",
+    "basename": "vogue_07_1950s",
+    "width": 500,
+    "height": 657,
+    "ratio": "500:657",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b032",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/vogue_08_france_2024_11.webp",
+    "out": "crawl-raw/magazine/vogue_08_france_2024_11.analysis.json",
+    "basename": "vogue_08_france_2024_11",
+    "width": 500,
+    "height": 625,
+    "ratio": "4:5",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/vogue_09_bestcover.jpg",
+    "out": "crawl-raw/magazine/vogue_09_bestcover.analysis.json",
+    "basename": "vogue_09_bestcover",
+    "width": 500,
+    "height": 669,
+    "ratio": "500:669",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/vogue_10_classiccover.jpg",
+    "out": "crawl-raw/magazine/vogue_10_classiccover.analysis.json",
+    "basename": "vogue_10_classiccover",
+    "width": 500,
+    "height": 667,
+    "ratio": "500:667",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b033",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/vogue_11.webp",
+    "out": "crawl-raw/magazine/vogue_11.analysis.json",
+    "basename": "vogue_11",
+    "width": 500,
+    "height": 625,
+    "ratio": "4:5",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/vogue_12.webp",
+    "out": "crawl-raw/magazine/vogue_12.analysis.json",
+    "basename": "vogue_12",
+    "width": 500,
+    "height": 625,
+    "ratio": "4:5",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/vogue_13.webp",
+    "out": "crawl-raw/magazine/vogue_13.analysis.json",
+    "basename": "vogue_13",
+    "width": 500,
+    "height": 625,
+    "ratio": "4:5",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b034",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/vogue_14.webp",
+    "out": "crawl-raw/magazine/vogue_14.analysis.json",
+    "basename": "vogue_14",
+    "width": 500,
+    "height": 645,
+    "ratio": "100:129",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/vogue_15.webp",
+    "out": "crawl-raw/magazine/vogue_15.analysis.json",
+    "basename": "vogue_15",
+    "width": 500,
+    "height": 663,
+    "ratio": "500:663",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/vogue_16.jpg",
+    "out": "crawl-raw/magazine/vogue_16.analysis.json",
+    "basename": "vogue_16",
+    "width": 500,
+    "height": 667,
+    "ratio": "500:667",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b035",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/vogue_17.jpg",
+    "out": "crawl-raw/magazine/vogue_17.analysis.json",
+    "basename": "vogue_17",
+    "width": 500,
+    "height": 667,
+    "ratio": "500:667",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/vogue_18.jpg",
+    "out": "crawl-raw/magazine/vogue_18.analysis.json",
+    "basename": "vogue_18",
+    "width": 800,
+    "height": 990,
+    "ratio": "80:99",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/magazine/vogue_19.jpg",
+    "out": "crawl-raw/magazine/vogue_19.analysis.json",
+    "basename": "vogue_19",
+    "width": 500,
+    "height": 666,
+    "ratio": "250:333",
+    "source": "magazine"
+   }
+  ]
+ },
+ {
+  "id": "b036",
+  "items": [
+   {
+    "path": "crawl-raw/magazine/vogue_20.webp",
+    "out": "crawl-raw/magazine/vogue_20.analysis.json",
+    "basename": "vogue_20",
+    "width": 500,
+    "height": 669,
+    "ratio": "500:669",
+    "source": "magazine"
+   },
+   {
+    "path": "crawl-raw/motionsites/3d/3D_3D_Character_Studio.webp",
+    "out": "crawl-raw/motionsites/3d/3D_3D_Character_Studio.analysis.json",
+    "basename": "3D_3D_Character_Studio",
+    "width": 1920,
+    "height": 1192,
+    "ratio": "240:149",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/3d/3D_3D_Collectible_Hero.webp",
+    "out": "crawl-raw/motionsites/3d/3D_3D_Collectible_Hero.analysis.json",
+    "basename": "3D_3D_Collectible_Hero",
+    "width": 640,
+    "height": 470,
+    "ratio": "64:47",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b037",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/3d/3D_Alethia.webp",
+    "out": "crawl-raw/motionsites/3d/3D_Alethia.analysis.json",
+    "basename": "3D_Alethia",
+    "width": 1920,
+    "height": 1434,
+    "ratio": "320:239",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/3d/3D_Arctis.webp",
+    "out": "crawl-raw/motionsites/3d/3D_Arctis.analysis.json",
+    "basename": "3D_Arctis",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/3d/3D_Autumn_Fox.webp",
+    "out": "crawl-raw/motionsites/3d/3D_Autumn_Fox.analysis.json",
+    "basename": "3D_Autumn_Fox",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b038",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/3d/3D_Cast_and_Render.webp",
+    "out": "crawl-raw/motionsites/3d/3D_Cast_and_Render.analysis.json",
+    "basename": "3D_Cast_and_Render",
+    "width": 1920,
+    "height": 1434,
+    "ratio": "320:239",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/3d/3D_Design_World.webp",
+    "out": "crawl-raw/motionsites/3d/3D_Design_World.analysis.json",
+    "basename": "3D_Design_World",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/3d/3D_Facet_Glass_Hero.webp",
+    "out": "crawl-raw/motionsites/3d/3D_Facet_Glass_Hero.analysis.json",
+    "basename": "3D_Facet_Glass_Hero",
+    "width": 1536,
+    "height": 1030,
+    "ratio": "768:515",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b039",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/3d/3D_Feathers_Atlas.webp",
+    "out": "crawl-raw/motionsites/3d/3D_Feathers_Atlas.analysis.json",
+    "basename": "3D_Feathers_Atlas",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/3d/3D_Fin_Coin.webp",
+    "out": "crawl-raw/motionsites/3d/3D_Fin_Coin.analysis.json",
+    "basename": "3D_Fin_Coin",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/3d/3D_HAVENORBI.webp",
+    "out": "crawl-raw/motionsites/3d/3D_HAVENORBI.analysis.json",
+    "basename": "3D_HAVENORBI",
+    "width": 1920,
+    "height": 1280,
+    "ratio": "3:2",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b040",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/3d/3D_Heart_Health_Dashboard.webp",
+    "out": "crawl-raw/motionsites/3d/3D_Heart_Health_Dashboard.analysis.json",
+    "basename": "3D_Heart_Health_Dashboard",
+    "width": 1920,
+    "height": 1288,
+    "ratio": "240:161",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/3d/3D_Jelly_Garden.webp",
+    "out": "crawl-raw/motionsites/3d/3D_Jelly_Garden.analysis.json",
+    "basename": "3D_Jelly_Garden",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/3d/3D_Kernel_Code.webp",
+    "out": "crawl-raw/motionsites/3d/3D_Kernel_Code.analysis.json",
+    "basename": "3D_Kernel_Code",
+    "width": 1280,
+    "height": 956,
+    "ratio": "320:239",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b041",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/3d/3D_Lost_Little_Explorer.webp",
+    "out": "crawl-raw/motionsites/3d/3D_Lost_Little_Explorer.analysis.json",
+    "basename": "3D_Lost_Little_Explorer",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/3d/3D_Lumora.webp",
+    "out": "crawl-raw/motionsites/3d/3D_Lumora.analysis.json",
+    "basename": "3D_Lumora",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/3d/3D_Nimbus_AI.webp",
+    "out": "crawl-raw/motionsites/3d/3D_Nimbus_AI.analysis.json",
+    "basename": "3D_Nimbus_AI",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b042",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/3d/3D_OctaForm.webp",
+    "out": "crawl-raw/motionsites/3d/3D_OctaForm.analysis.json",
+    "basename": "3D_OctaForm",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/3d/3D_Plush_Sky_Den.webp",
+    "out": "crawl-raw/motionsites/3d/3D_Plush_Sky_Den.analysis.json",
+    "basename": "3D_Plush_Sky_Den",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/3d/3D_Pulse_3D.webp",
+    "out": "crawl-raw/motionsites/3d/3D_Pulse_3D.analysis.json",
+    "basename": "3D_Pulse_3D",
+    "width": 640,
+    "height": 474,
+    "ratio": "320:237",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b043",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/3d/3D_Renewable_greentech.webp",
+    "out": "crawl-raw/motionsites/3d/3D_Renewable_greentech.analysis.json",
+    "basename": "3D_Renewable_greentech",
+    "width": 1536,
+    "height": 910,
+    "ratio": "768:455",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/3d/3D_Roadster_3D.webp",
+    "out": "crawl-raw/motionsites/3d/3D_Roadster_3D.analysis.json",
+    "basename": "3D_Roadster_3D",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/3d/3D_Sakura_QR.webp",
+    "out": "crawl-raw/motionsites/3d/3D_Sakura_QR.analysis.json",
+    "basename": "3D_Sakura_QR",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b044",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/3d/3D_Skyra_AI.webp",
+    "out": "crawl-raw/motionsites/3d/3D_Skyra_AI.analysis.json",
+    "basename": "3D_Skyra_AI",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/3d/3D_Space_planet.webp",
+    "out": "crawl-raw/motionsites/3d/3D_Space_planet.analysis.json",
+    "basename": "3D_Space_planet",
+    "width": 1280,
+    "height": 956,
+    "ratio": "320:239",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/3d/3D_Specimen.webp",
+    "out": "crawl-raw/motionsites/3d/3D_Specimen.analysis.json",
+    "basename": "3D_Specimen",
+    "width": 1536,
+    "height": 857,
+    "ratio": "1536:857",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b045",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/creative/Creative_AI_Future_Studio.webp",
+    "out": "crawl-raw/motionsites/creative/Creative_AI_Future_Studio.analysis.json",
+    "basename": "Creative_AI_Future_Studio",
+    "width": 1280,
+    "height": 956,
+    "ratio": "320:239",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/creative/Creative_Ancient_Oath.webp",
+    "out": "crawl-raw/motionsites/creative/Creative_Ancient_Oath.analysis.json",
+    "basename": "Creative_Ancient_Oath",
+    "width": 1536,
+    "height": 768,
+    "ratio": "2:1",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/creative/Creative_Ascend.webp",
+    "out": "crawl-raw/motionsites/creative/Creative_Ascend.analysis.json",
+    "basename": "Creative_Ascend",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b046",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/creative/Creative_Avant_Studio.webp",
+    "out": "crawl-raw/motionsites/creative/Creative_Avant_Studio.analysis.json",
+    "basename": "Creative_Avant_Studio",
+    "width": 1280,
+    "height": 956,
+    "ratio": "320:239",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/creative/Creative_Creative_Matter.webp",
+    "out": "crawl-raw/motionsites/creative/Creative_Creative_Matter.analysis.json",
+    "basename": "Creative_Creative_Matter",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/creative/Creative_Dream_Garden.webp",
+    "out": "crawl-raw/motionsites/creative/Creative_Dream_Garden.analysis.json",
+    "basename": "Creative_Dream_Garden",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b047",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/creative/Creative_Frame_Futures.webp",
+    "out": "crawl-raw/motionsites/creative/Creative_Frame_Futures.analysis.json",
+    "basename": "Creative_Frame_Futures",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/creative/Creative_Frozen_Cave.webp",
+    "out": "crawl-raw/motionsites/creative/Creative_Frozen_Cave.analysis.json",
+    "basename": "Creative_Frozen_Cave",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/creative/Creative_Honey_Bee.webp",
+    "out": "crawl-raw/motionsites/creative/Creative_Honey_Bee.analysis.json",
+    "basename": "Creative_Honey_Bee",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b048",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/creative/Creative_Hover_Ink.webp",
+    "out": "crawl-raw/motionsites/creative/Creative_Hover_Ink.analysis.json",
+    "basename": "Creative_Hover_Ink",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/creative/Creative_Keel.webp",
+    "out": "crawl-raw/motionsites/creative/Creative_Keel.analysis.json",
+    "basename": "Creative_Keel",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/creative/Creative_Octopus_Mentality.webp",
+    "out": "crawl-raw/motionsites/creative/Creative_Octopus_Mentality.analysis.json",
+    "basename": "Creative_Octopus_Mentality",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b049",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/creative/Creative_Orange_Horse.webp",
+    "out": "crawl-raw/motionsites/creative/Creative_Orange_Horse.analysis.json",
+    "basename": "Creative_Orange_Horse",
+    "width": 1536,
+    "height": 1030,
+    "ratio": "768:515",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/creative/Creative_Petalyx.webp",
+    "out": "crawl-raw/motionsites/creative/Creative_Petalyx.analysis.json",
+    "basename": "Creative_Petalyx",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/creative/Creative_Plume.webp",
+    "out": "crawl-raw/motionsites/creative/Creative_Plume.analysis.json",
+    "basename": "Creative_Plume",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b050",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/creative/Creative_Skyflora.webp",
+    "out": "crawl-raw/motionsites/creative/Creative_Skyflora.analysis.json",
+    "basename": "Creative_Skyflora",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/creative/Creative_Space_Voyage.webp",
+    "out": "crawl-raw/motionsites/creative/Creative_Space_Voyage.analysis.json",
+    "basename": "Creative_Space_Voyage",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/creative/Creative_Undr_Drift.webp",
+    "out": "crawl-raw/motionsites/creative/Creative_Undr_Drift.analysis.json",
+    "basename": "Creative_Undr_Drift",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b051",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/creative/Creative_Vintage_Care.webp",
+    "out": "crawl-raw/motionsites/creative/Creative_Vintage_Care.analysis.json",
+    "basename": "Creative_Vintage_Care",
+    "width": 1536,
+    "height": 913,
+    "ratio": "1536:913",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/ecommerce/Ecommerce_Fine_Jewelry_Shop.png",
+    "out": "crawl-raw/motionsites/ecommerce/Ecommerce_Fine_Jewelry_Shop.analysis.json",
+    "basename": "Ecommerce_Fine_Jewelry_Shop",
+    "width": 1574,
+    "height": 1155,
+    "ratio": "1574:1155",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/ecommerce/Ecommerce_Futuristic_Eyewear.webp",
+    "out": "crawl-raw/motionsites/ecommerce/Ecommerce_Futuristic_Eyewear.analysis.json",
+    "basename": "Ecommerce_Futuristic_Eyewear",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b052",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/ecommerce/Ecommerce_Halo_Sound.webp",
+    "out": "crawl-raw/motionsites/ecommerce/Ecommerce_Halo_Sound.analysis.json",
+    "basename": "Ecommerce_Halo_Sound",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/ecommerce/Ecommerce_Jewelry_Store.png",
+    "out": "crawl-raw/motionsites/ecommerce/Ecommerce_Jewelry_Store.analysis.json",
+    "basename": "Ecommerce_Jewelry_Store",
+    "width": 1262,
+    "height": 925,
+    "ratio": "1262:925",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/ecommerce/Ecommerce_Luxury_Focus.webp",
+    "out": "crawl-raw/motionsites/ecommerce/Ecommerce_Luxury_Focus.analysis.json",
+    "basename": "Ecommerce_Luxury_Focus",
+    "width": 640,
+    "height": 470,
+    "ratio": "64:47",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b053",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/ecommerce/Ecommerce_OYLA.webp",
+    "out": "crawl-raw/motionsites/ecommerce/Ecommerce_OYLA.analysis.json",
+    "basename": "Ecommerce_OYLA",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/ecommerce/Ecommerce_Performance_Eyewear.webp",
+    "out": "crawl-raw/motionsites/ecommerce/Ecommerce_Performance_Eyewear.analysis.json",
+    "basename": "Ecommerce_Performance_Eyewear",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/ecommerce/Ecommerce_Vertex.webp",
+    "out": "crawl-raw/motionsites/ecommerce/Ecommerce_Vertex.analysis.json",
+    "basename": "Ecommerce_Vertex",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b054",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_3D_Story.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_3D_Story.analysis.json",
+    "basename": "LandingPage_3D_Story",
+    "width": 640,
+    "height": 474,
+    "ratio": "320:237",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_ADHD_Planner.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_ADHD_Planner.analysis.json",
+    "basename": "LandingPage_ADHD_Planner",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_AI_Automation.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_AI_Automation.analysis.json",
+    "basename": "LandingPage_AI_Automation",
+    "width": 640,
+    "height": 474,
+    "ratio": "320:237",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b055",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_AI_Designer_Agency.gif",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_AI_Designer_Agency.analysis.json",
+    "basename": "LandingPage_AI_Designer_Agency",
+    "width": 457,
+    "height": 800,
+    "ratio": "457:800",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_AI_Designer_Portfolio.gif",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_AI_Designer_Portfolio.analysis.json",
+    "basename": "LandingPage_AI_Designer_Portfolio",
+    "width": 604,
+    "height": 476,
+    "ratio": "151:119",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_AI_Future_Studio.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_AI_Future_Studio.analysis.json",
+    "basename": "LandingPage_AI_Future_Studio",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b056",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Acreage_Farming.gif",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Acreage_Farming.analysis.json",
+    "basename": "LandingPage_Acreage_Farming",
+    "width": 459,
+    "height": 800,
+    "ratio": "459:800",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Apex_Pulse.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Apex_Pulse.analysis.json",
+    "basename": "LandingPage_Apex_Pulse",
+    "width": 640,
+    "height": 474,
+    "ratio": "320:237",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Arctic_Lab.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Arctic_Lab.analysis.json",
+    "basename": "LandingPage_Arctic_Lab",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b057",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Automotive_AI.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Automotive_AI.analysis.json",
+    "basename": "LandingPage_Automotive_AI",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Avant_Studio.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Avant_Studio.analysis.json",
+    "basename": "LandingPage_Avant_Studio",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Bloom.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Bloom.analysis.json",
+    "basename": "LandingPage_Bloom",
+    "width": 640,
+    "height": 478,
+    "ratio": "320:239",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b058",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Bolt.png",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Bolt.analysis.json",
+    "basename": "LandingPage_Bolt",
+    "width": 223,
+    "height": 223,
+    "ratio": "1:1",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Build_Unit.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Build_Unit.analysis.json",
+    "basename": "LandingPage_Build_Unit",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Cinematic_Landing_Page.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Cinematic_Landing_Page.analysis.json",
+    "basename": "LandingPage_Cinematic_Landing_Page",
+    "width": 640,
+    "height": 470,
+    "ratio": "64:47",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b059",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Clarity_Core.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Clarity_Core.analysis.json",
+    "basename": "LandingPage_Clarity_Core",
+    "width": 640,
+    "height": 468,
+    "ratio": "160:117",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Creative_Agency.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Creative_Agency.analysis.json",
+    "basename": "LandingPage_Creative_Agency",
+    "width": 640,
+    "height": 474,
+    "ratio": "320:237",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_DeepThink.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_DeepThink.analysis.json",
+    "basename": "LandingPage_DeepThink",
+    "width": 1536,
+    "height": 2313,
+    "ratio": "512:771",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b060",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Deep_Neural_Interface.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Deep_Neural_Interface.analysis.json",
+    "basename": "LandingPage_Deep_Neural_Interface",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Digital_Experiences.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Digital_Experiences.analysis.json",
+    "basename": "LandingPage_Digital_Experiences",
+    "width": 640,
+    "height": 458,
+    "ratio": "320:229",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Dreamcore_Landing.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Dreamcore_Landing.analysis.json",
+    "basename": "LandingPage_Dreamcore_Landing",
+    "width": 640,
+    "height": 468,
+    "ratio": "160:117",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b061",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_E-commerce_Website.gif",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_E-commerce_Website.analysis.json",
+    "basename": "LandingPage_E-commerce_Website",
+    "width": 458,
+    "height": 800,
+    "ratio": "229:400",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Editorial_Eyewear.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Editorial_Eyewear.analysis.json",
+    "basename": "LandingPage_Editorial_Eyewear",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Email_Landing_Page.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Email_Landing_Page.analysis.json",
+    "basename": "LandingPage_Email_Landing_Page",
+    "width": 640,
+    "height": 478,
+    "ratio": "320:239",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b062",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Focus_AI.gif",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Focus_AI.analysis.json",
+    "basename": "LandingPage_Focus_AI",
+    "width": 442,
+    "height": 780,
+    "ratio": "17:30",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Future-State.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Future-State.analysis.json",
+    "basename": "LandingPage_Future-State",
+    "width": 640,
+    "height": 470,
+    "ratio": "64:47",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Gateway_Portal.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Gateway_Portal.analysis.json",
+    "basename": "LandingPage_Gateway_Portal",
+    "width": 640,
+    "height": 474,
+    "ratio": "320:237",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b063",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Glitch_Pulse.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Glitch_Pulse.analysis.json",
+    "basename": "LandingPage_Glitch_Pulse",
+    "width": 640,
+    "height": 470,
+    "ratio": "64:47",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Golden_Portal.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Golden_Portal.analysis.json",
+    "basename": "LandingPage_Golden_Portal",
+    "width": 640,
+    "height": 470,
+    "ratio": "64:47",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Health_Portal.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Health_Portal.analysis.json",
+    "basename": "LandingPage_Health_Portal",
+    "width": 640,
+    "height": 472,
+    "ratio": "80:59",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b064",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Innovation.gif",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Innovation.analysis.json",
+    "basename": "LandingPage_Innovation",
+    "width": 447,
+    "height": 800,
+    "ratio": "447:800",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Intelligent_Systems.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Intelligent_Systems.analysis.json",
+    "basename": "LandingPage_Intelligent_Systems",
+    "width": 1536,
+    "height": 2313,
+    "ratio": "512:771",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Investment_Gate.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Investment_Gate.analysis.json",
+    "basename": "LandingPage_Investment_Gate",
+    "width": 640,
+    "height": 472,
+    "ratio": "80:59",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b065",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Layered_Depth.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Layered_Depth.analysis.json",
+    "basename": "LandingPage_Layered_Depth",
+    "width": 640,
+    "height": 470,
+    "ratio": "64:47",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Liquid_Glass_Agency.gif",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Liquid_Glass_Agency.analysis.json",
+    "basename": "LandingPage_Liquid_Glass_Agency",
+    "width": 385,
+    "height": 800,
+    "ratio": "77:160",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Luxury_Botanical.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Luxury_Botanical.analysis.json",
+    "basename": "LandingPage_Luxury_Botanical",
+    "width": 640,
+    "height": 470,
+    "ratio": "64:47",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b066",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Luxury_Ecommerce_Design.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Luxury_Ecommerce_Design.analysis.json",
+    "basename": "LandingPage_Luxury_Ecommerce_Design",
+    "width": 366,
+    "height": 640,
+    "ratio": "183:320",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Luxury_Real_Estate.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Luxury_Real_Estate.analysis.json",
+    "basename": "LandingPage_Luxury_Real_Estate",
+    "width": 640,
+    "height": 466,
+    "ratio": "320:233",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Mindloop_Landing.gif",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Mindloop_Landing.analysis.json",
+    "basename": "LandingPage_Mindloop_Landing",
+    "width": 455,
+    "height": 800,
+    "ratio": "91:160",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b067",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Motion_Frame.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Motion_Frame.analysis.json",
+    "basename": "LandingPage_Motion_Frame",
+    "width": 1536,
+    "height": 869,
+    "ratio": "1536:869",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Mythic_Naturecore.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Mythic_Naturecore.analysis.json",
+    "basename": "LandingPage_Mythic_Naturecore",
+    "width": 640,
+    "height": 480,
+    "ratio": "4:3",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_NeoVision.gif",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_NeoVision.analysis.json",
+    "basename": "LandingPage_NeoVision",
+    "width": 461,
+    "height": 800,
+    "ratio": "461:800",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b068",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Neon_Logic.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Neon_Logic.analysis.json",
+    "basename": "LandingPage_Neon_Logic",
+    "width": 640,
+    "height": 474,
+    "ratio": "320:237",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Neural_Interface.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Neural_Interface.analysis.json",
+    "basename": "LandingPage_Neural_Interface",
+    "width": 640,
+    "height": 478,
+    "ratio": "320:239",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Nike_Premium_Landing.gif",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Nike_Premium_Landing.analysis.json",
+    "basename": "LandingPage_Nike_Premium_Landing",
+    "width": 800,
+    "height": 587,
+    "ratio": "800:587",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b069",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Orbis_NFT.gif",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Orbis_NFT.analysis.json",
+    "basename": "LandingPage_Orbis_NFT",
+    "width": 452,
+    "height": 800,
+    "ratio": "113:200",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_PROMPT.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_PROMPT.analysis.json",
+    "basename": "LandingPage_PROMPT",
+    "width": 1536,
+    "height": 1157,
+    "ratio": "1536:1157",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Prisma_Creative_Studio.gif",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Prisma_Creative_Studio.analysis.json",
+    "basename": "LandingPage_Prisma_Creative_Studio",
+    "width": 455,
+    "height": 800,
+    "ratio": "91:160",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b070",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Product_Studio.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Product_Studio.analysis.json",
+    "basename": "LandingPage_Product_Studio",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Pulse_3D.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Pulse_3D.analysis.json",
+    "basename": "LandingPage_Pulse_3D",
+    "width": 640,
+    "height": 474,
+    "ratio": "320:237",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_RIVR_DeFi.gif",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_RIVR_DeFi.analysis.json",
+    "basename": "LandingPage_RIVR_DeFi",
+    "width": 444,
+    "height": 800,
+    "ratio": "111:200",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b071",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Remote_Dev_Collective.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Remote_Dev_Collective.analysis.json",
+    "basename": "LandingPage_Remote_Dev_Collective",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Sentinel.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Sentinel.analysis.json",
+    "basename": "LandingPage_Sentinel",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_SkyElite_Private_Jets.gif",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_SkyElite_Private_Jets.analysis.json",
+    "basename": "LandingPage_SkyElite_Private_Jets",
+    "width": 1920,
+    "height": 1455,
+    "ratio": "128:97",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b072",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Sky_Estate.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Sky_Estate.analysis.json",
+    "basename": "LandingPage_Sky_Estate",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Smarter_Growth.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Smarter_Growth.analysis.json",
+    "basename": "LandingPage_Smarter_Growth",
+    "width": 1536,
+    "height": 1030,
+    "ratio": "768:515",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Space_Voyage.gif",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Space_Voyage.analysis.json",
+    "basename": "LandingPage_Space_Voyage",
+    "width": 800,
+    "height": 588,
+    "ratio": "200:147",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b073",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Spatial_Mapping_Platform.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Spatial_Mapping_Platform.analysis.json",
+    "basename": "LandingPage_Spatial_Mapping_Platform",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Synthesis.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Synthesis.analysis.json",
+    "basename": "LandingPage_Synthesis",
+    "width": 640,
+    "height": 474,
+    "ratio": "320:237",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Systema.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Systema.analysis.json",
+    "basename": "LandingPage_Systema",
+    "width": 1536,
+    "height": 1728,
+    "ratio": "8:9",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b074",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_USD_Halo.gif",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_USD_Halo.analysis.json",
+    "basename": "LandingPage_USD_Halo",
+    "width": 458,
+    "height": 800,
+    "ratio": "229:400",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Urban_Jungle.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Urban_Jungle.analysis.json",
+    "basename": "LandingPage_Urban_Jungle",
+    "width": 1280,
+    "height": 964,
+    "ratio": "320:241",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Weblex_Dark_Hero.gif",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Weblex_Dark_Hero.analysis.json",
+    "basename": "LandingPage_Weblex_Dark_Hero",
+    "width": 800,
+    "height": 547,
+    "ratio": "800:547",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b075",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Yoga_Coach.webp",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Yoga_Coach.analysis.json",
+    "basename": "LandingPage_Yoga_Coach",
+    "width": 640,
+    "height": 470,
+    "ratio": "64:47",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/landingpage/LandingPage_Zenith_Realty.gif",
+    "out": "crawl-raw/motionsites/landingpage/LandingPage_Zenith_Realty.analysis.json",
+    "basename": "LandingPage_Zenith_Realty",
+    "width": 454,
+    "height": 800,
+    "ratio": "227:400",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/technology/Technology_Augmented_Sight.webp",
+    "out": "crawl-raw/motionsites/technology/Technology_Augmented_Sight.analysis.json",
+    "basename": "Technology_Augmented_Sight",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b076",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/technology/Technology_Cyber_Ronin.webp",
+    "out": "crawl-raw/motionsites/technology/Technology_Cyber_Ronin.analysis.json",
+    "basename": "Technology_Cyber_Ronin",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/technology/Technology_Geno_Trace.webp",
+    "out": "crawl-raw/motionsites/technology/Technology_Geno_Trace.analysis.json",
+    "basename": "Technology_Geno_Trace",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/technology/Technology_Innovation_Lab.webp",
+    "out": "crawl-raw/motionsites/technology/Technology_Innovation_Lab.analysis.json",
+    "basename": "Technology_Innovation_Lab",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b077",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/technology/Technology_Intelligence_Layer.webp",
+    "out": "crawl-raw/motionsites/technology/Technology_Intelligence_Layer.analysis.json",
+    "basename": "Technology_Intelligence_Layer",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/technology/Technology_NEX_Robotics.webp",
+    "out": "crawl-raw/motionsites/technology/Technology_NEX_Robotics.analysis.json",
+    "basename": "Technology_NEX_Robotics",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/technology/Technology_React_Vision.webp",
+    "out": "crawl-raw/motionsites/technology/Technology_React_Vision.analysis.json",
+    "basename": "Technology_React_Vision",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b078",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/technology/Technology_Riverine.webp",
+    "out": "crawl-raw/motionsites/technology/Technology_Riverine.analysis.json",
+    "basename": "Technology_Riverine",
+    "width": 1280,
+    "height": 956,
+    "ratio": "320:239",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/technology/Technology_Signal_ID.webp",
+    "out": "crawl-raw/motionsites/technology/Technology_Signal_ID.analysis.json",
+    "basename": "Technology_Signal_ID",
+    "width": 1536,
+    "height": 1020,
+    "ratio": "128:85",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/technology/Technology_Silent_Velocity.webp",
+    "out": "crawl-raw/motionsites/technology/Technology_Silent_Velocity.analysis.json",
+    "basename": "Technology_Silent_Velocity",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b079",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/technology/Technology_Spectrum_Grid.webp",
+    "out": "crawl-raw/motionsites/technology/Technology_Spectrum_Grid.analysis.json",
+    "basename": "Technology_Spectrum_Grid",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/technology/Technology_Terrena.webp",
+    "out": "crawl-raw/motionsites/technology/Technology_Terrena.analysis.json",
+    "basename": "Technology_Terrena",
+    "width": 1280,
+    "height": 956,
+    "ratio": "320:239",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/travel/Travel_AI_Trip_Planner.webp",
+    "out": "crawl-raw/motionsites/travel/Travel_AI_Trip_Planner.analysis.json",
+    "basename": "Travel_AI_Trip_Planner",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b080",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/travel/Travel_Frostbound.webp",
+    "out": "crawl-raw/motionsites/travel/Travel_Frostbound.analysis.json",
+    "basename": "Travel_Frostbound",
+    "width": 1536,
+    "height": 857,
+    "ratio": "1536:857",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/travel/Travel_Mostar_Guide.webp",
+    "out": "crawl-raw/motionsites/travel/Travel_Mostar_Guide.analysis.json",
+    "basename": "Travel_Mostar_Guide",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/travel/Travel_Mountain_Retreat.webp",
+    "out": "crawl-raw/motionsites/travel/Travel_Mountain_Retreat.analysis.json",
+    "basename": "Travel_Mountain_Retreat",
+    "width": 1536,
+    "height": 857,
+    "ratio": "1536:857",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b081",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/travel/Travel_Tana_Elephant_Sections.webp",
+    "out": "crawl-raw/motionsites/travel/Travel_Tana_Elephant_Sections.analysis.json",
+    "basename": "Travel_Tana_Elephant_Sections",
+    "width": 1536,
+    "height": 1030,
+    "ratio": "768:515",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/travel/Travel_Wander_Far.webp",
+    "out": "crawl-raw/motionsites/travel/Travel_Wander_Far.analysis.json",
+    "basename": "Travel_Wander_Far",
+    "width": 1536,
+    "height": 1030,
+    "ratio": "768:515",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/travel/Travel_Wanderful_Hero.webp",
+    "out": "crawl-raw/motionsites/travel/Travel_Wanderful_Hero.analysis.json",
+    "basename": "Travel_Wanderful_Hero",
+    "width": 640,
+    "height": 470,
+    "ratio": "64:47",
+    "source": "motionsites"
+   }
+  ]
+ },
+ {
+  "id": "b082",
+  "items": [
+   {
+    "path": "crawl-raw/motionsites/travel/Travel_Way_Farer.webp",
+    "out": "crawl-raw/motionsites/travel/Travel_Way_Farer.analysis.json",
+    "basename": "Travel_Way_Farer",
+    "width": 1536,
+    "height": 1147,
+    "ratio": "1536:1147",
+    "source": "motionsites"
+   },
+   {
+    "path": "crawl-raw/motionsites/travel/Travel_yondering_Hero.webp",
+    "out": "crawl-raw/motionsites/travel/Travel_yondering_Hero.analysis.json",
+    "basename": "Travel_yondering_Hero",
+    "width": 1536,
+    "height": 1030,
+    "ratio": "768:515",
+    "source": "motionsites"
+   }
+  ]
+ }
+]

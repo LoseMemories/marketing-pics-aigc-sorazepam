@@ -1,0 +1,56 @@
+# 后端 + Python 分析栈（Python 3.9 + Node 24 + torch + SAM + EasyOCR）
+# 基镜像用官方 python:3.9-slim，保证与开发环境 Python 版本一致
+FROM python:3.9-slim
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    NODE_VERSION=24.9.0 \
+    PNPM_VERSION=9.12.0
+
+# 换阿里云 Debian 源（deb.debian.org 境内极慢）
+RUN sed -i 's|deb.debian.org|mirrors.aliyun.com|g; s|security.debian.org|mirrors.aliyun.com|g' \
+      /etc/apt/sources.list /etc/apt/sources.list.d/*.sources 2>/dev/null || true
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates curl xz-utils git build-essential \
+      libgl1 libglib2.0-0 libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Node + pnpm
+# Node 走国内镜像（北京/上海机器直连 nodejs.org 会非常慢）
+RUN curl -fsSL https://npmmirror.com/mirrors/node/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz \
+      | tar -xJ -C /usr/local --strip-components=1 \
+    && npm config set registry https://registry.npmmirror.com \
+    && npm i -g pnpm@${PNPM_VERSION}
+
+WORKDIR /app
+
+# Python 依赖：PyPI 走清华源；torch 用 CPU 版（省 1.5GB）
+# 注：torch CPU wheel 不在 PyPI 主源，用 SJTU 的 pytorch 镜像
+RUN pip3 config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple \
+    && pip3 install --no-cache-dir \
+      --index-url https://mirror.sjtu.edu.cn/pytorch-wheels/cpu \
+      --extra-index-url https://pypi.tuna.tsinghua.edu.cn/simple \
+      torch==2.2.2 torchvision==0.17.2 \
+    && pip3 install --no-cache-dir \
+      numpy opencv-python-headless pillow easyocr segment-anything
+
+# Node 依赖
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY backend/package.json backend/
+COPY frontend/package.json frontend/
+ENV npm_config_registry=https://registry.npmmirror.com
+RUN pnpm install --frozen-lockfile --ignore-scripts
+
+# 源码 + 构建
+COPY . .
+RUN pnpm --filter @marketing-photo/backend build
+
+# 模型与数据都走 volume，不打进镜像
+ENV PYTHONPATH=/app/models \
+    SAM_CHECKPOINT=/models/sam_vit_b.pth \
+    EASYOCR_MODULE_PATH=/models/easyocr
+
+EXPOSE 3000
+CMD ["node", "backend/dist/runtime/main.js"]

@@ -1,0 +1,31 @@
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.backend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - RETRY_ENABLED=${RETRY_ENABLED:-true}
+    volumes:
+      - ../backend/data:/app/backend/data
+      - ../models:/models:ro
+    expose:
+      - "3000"
+
+  web:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.web
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy_data:/data
+
+volumes:
+  caddy_data:

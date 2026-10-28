@@ -1,0 +1,186 @@
+{
+  "promptVersion": 4,
+  "cachedAt": "2026-10-25T20:49:40.006Z",
+  "design": {
+    "version": 1,
+    "concept": "把金色人形雕塑当成「城市地标」来处理，而不是展品说明：文案只保留艺人、城市、场次、日期四个可核对的事实，右上方天空留白承接纵向文字块，自上而下是品牌名—城市场次—巡演信息—日期，形成演唱会海报的阅读顺序；动效只用一次横向光带扫过和标题遮罩揭示，给商业发布感，不干扰主体与蓝天。",
+    "blocks": [
+      {
+        "id": "kicker",
+        "role": "kicker",
+        "text": "THE WEEKND",
+        "anchor": {
+          "ref": "textAnchor",
+          "dxPct": -1,
+          "dyPct": -6
+        },
+        "align": "left",
+        "sizeRatio": 0.06,
+        "weight": 700,
+        "tracking": 0.18,
+        "lineHeight": 1.2,
+        "font": "sans",
+        "transform": {
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotateDeg": 0,
+          "skewDeg": 0
+        },
+        "path": {
+          "fromDxPct": 0,
+          "fromDyPct": 0,
+          "fromScale": 1,
+          "toScale": 1
+        },
+        "text3d": "none",
+        "occlude": false,
+        "enter": {
+          "id": "fade-in-place",
+          "params": {
+            "durationMs": 420
+          },
+          "options": {}
+        }
+      },
+      {
+        "id": "headline",
+        "role": "headline",
+        "text": "曼谷 · 第二场",
+        "anchor": {
+          "ref": "textAnchor",
+          "dxPct": 0,
+          "dyPct": 0
+        },
+        "align": "left",
+        "sizeRatio": 0.13,
+        "weight": 800,
+        "tracking": -0.02,
+        "lineHeight": 1.15,
+        "font": "display",
+        "transform": {
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotateDeg": 0,
+          "skewDeg": 0
+        },
+        "path": {
+          "fromDxPct": 0,
+          "fromDyPct": 0,
+          "fromScale": 1,
+          "toScale": 1
+        },
+        "text3d": "none",
+        "occlude": true,
+        "enter": {
+          "id": "mask-reveal",
+          "params": {
+            "durationMs": 680,
+            "softness": 0.2
+          },
+          "options": {}
+        }
+      },
+      {
+        "id": "subline",
+        "role": "subline",
+        "text": "亚洲巡回 · 泰国曼谷站",
+        "anchor": {
+          "ref": "textAnchor",
+          "dxPct": -1,
+          "dyPct": -6
+        },
+        "align": "left",
+        "sizeRatio": 0.055,
+        "weight": 500,
+        "tracking": 0.02,
+        "lineHeight": 1.3,
+        "font": "sans",
+        "transform": {
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotateDeg": 0,
+          "skewDeg": 0
+        },
+        "path": {
+          "fromDxPct": 0,
+          "fromDyPct": 0,
+          "fromScale": 1,
+          "toScale": 1
+        },
+        "text3d": "none",
+        "occlude": false,
+        "enter": {
+          "id": "slide-up",
+          "params": {
+            "durationMs": 460,
+            "distancePct": 3
+          },
+          "options": {}
+        }
+      },
+      {
+        "id": "date",
+        "role": "meta",
+        "text": "2026.10.12",
+        "anchor": {
+          "ref": "textAnchor",
+          "dxPct": -1,
+          "dyPct": -6
+        },
+        "align": "left",
+        "sizeRatio": 0.06,
+        "weight": 600,
+        "tracking": 0.1,
+        "lineHeight": 1.2,
+        "font": "mono",
+        "transform": {
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotateDeg": 0,
+          "skewDeg": 0
+        },
+        "path": {
+          "fromDxPct": 0,
+          "fromDyPct": 0,
+          "fromScale": 1,
+          "toScale": 1
+        },
+        "text3d": "none",
+        "occlude": false,
+        "enter": {
+          "id": "fade",
+          "params": {
+            "durationMs": 320
+          },
+          "options": {}
+        }
+      }
+    ],
+    "effects": [
+      {
+        "id": "sweep",
+        "anchor": {
+          "ref": "textAnchor",
+          "dxPct": -1,
+          "dyPct": -6
+        },
+        "colorRef": "accent",
+        "params": {
+          "widthPct": 16,
+          "opacity": 0.18,
+          "angleDeg": 12
+        },
+        "options": {}
+      }
+    ],
+    "palette": {
+      "text": "#FFFFFF",
+      "accent": "#F8E1A9",
+      "support": "#0B0D10"
+    },
+    "beats": {
+      "pace": "medium",
+      "startMs": 0
+    }
+  }
+}

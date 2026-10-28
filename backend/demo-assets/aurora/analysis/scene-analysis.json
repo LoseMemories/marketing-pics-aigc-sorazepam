@@ -1,0 +1,15 @@
+{
+  "summary": "深色背景中呈现青绿极光般的流动渐变，视觉中心集中，适合科技、新品与创意营销主题。",
+  "subjects": ["流动极光", "抽象渐变"],
+  "subjectRegions": [
+    { "label": "流动极光", "x": 0.05, "y": 0.42, "width": 0.52, "height": 0.5, "confidence": 0.92 },
+    { "label": "抽象渐变", "x": 0.02, "y": 0.2, "width": 0.94, "height": 0.76, "confidence": 0.86 }
+  ],
+  "environment": "竖版抽象视觉空间，背景深邃，中央高亮。",
+  "dominantColors": ["#101820", "#1f7a8c", "#d9ff52"],
+  "safeZones": [
+    { "x": 0.12, "y": 0.1, "width": 0.76, "height": 0.24, "reason": "顶部暗区适合营销标题" }
+  ],
+  "marketingTone": ["未来感", "新品", "高级"],
+  "risks": ["高亮文字应避开中央最亮区域"]
+}

@@ -1,0 +1,46 @@
+node_modules/
+dist/
+.DS_Store
+coverage/
+*.log
+.vscode/
+
+# Local secrets
+.env
+.env.local
+backend/.env.local
+
+# ---- 大体积非代码资源：只存本地 / 远程 Linux 服务器，不进 Git ----
+# 模型权重与 Python 依赖（结构见 models/README.md）
+models/*
+!models/README.md
+
+# 图库数据与运行时数据（frontend 画廊读取 inspiration，其余为运行时生成）
+backend/data/
+
+# 字体资源（后端 / 前端）
+backend/assets/fonts/
+frontend/public/fonts/
+
+# 原始爬取素材（manifest.json 与图片一起不进仓库）
+resources/crawl-raw/
+
+# 演示实况照片的二进制素材（.md 说明文件仍入库）
+backend/selfies/*.HEIC
+backend/selfies/*.heic
+backend/selfies/*.MOV
+backend/selfies/*.mov
+backend/selfies/*.png
+backend/selfies/*.jpg
+backend/selfies/*.jpeg
+backend/selfies/*.webp
+backend/selfies/*.gif
+
+# Python caches / model files (download separately when running the analysis pipeline)
+__pycache__/
+*.pyc
+.pytest_cache/
+resources/deepseek/crawl/weights/
+resources/deepseek/crawl/node_modules/
+resources/deepseek/crawl/*.pt
+resources/deepseek/logs/

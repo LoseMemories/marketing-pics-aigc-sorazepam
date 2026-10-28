@@ -1,0 +1,20 @@
+# 没有域名时：直接用 IP:80 访问
+# 有域名后把下面第一行换成  yourdomain.com  即可自动签发 HTTPS
+:80 {
+    root * /srv
+    encode gzip
+
+    handle /api/* {
+        reverse_proxy backend:3000
+    }
+    handle /gallery/* {
+        reverse_proxy backend:3000
+    }
+    handle /health {
+        reverse_proxy backend:3000
+    }
+    handle {
+        try_files {path} /index.html
+        file_server
+    }
+}

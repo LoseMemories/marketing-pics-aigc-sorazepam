@@ -1,0 +1,13 @@
+# 前端静态资源
+FROM node:24-alpine AS build
+WORKDIR /app
+RUN corepack enable
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY frontend/package.json frontend/
+RUN pnpm install --frozen-lockfile --ignore-scripts --filter @marketing-photo/frontend
+COPY frontend frontend
+RUN pnpm --filter @marketing-photo/frontend build
+
+FROM caddy:2-alpine
+COPY --from=build /app/frontend/dist /srv
+COPY deploy/Caddyfile /etc/caddy/Caddyfile
