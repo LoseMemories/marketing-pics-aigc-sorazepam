@@ -90,3 +90,30 @@ export function readDesign(assetId: string): Promise<{ design: DesignSpec | null
 export function readCopySource(assetId: string): Promise<{ text: string; hasCopySource: boolean }> {
   return getJson(`/api/v1/live-assets/${assetId}/copy-source`);
 }
+
+/* ---------- 工作台：复用灵感工作流分析管线 ---------- */
+
+export interface WorkflowJobStep {
+  step: string;
+  status: string;
+  detail: string;
+}
+
+export interface WorkflowJob {
+  id: string;
+  status: "queued" | "running" | "done" | "error";
+  steps: WorkflowJobStep[];
+  result?: Record<string, any> | null;
+  pendingId?: string | null;
+  error?: string | null;
+}
+
+/** 对图库素材（live-asset）跑一次完整的工作流识别（主体/SAM/色块/OCR/语汇）。 */
+export function analyzeLiveAssetWorkflow(assetId: string): Promise<{ jobId: string }> {
+  return postJson(`/api/v1/workflow/analyze-live-asset`, { assetId });
+}
+
+/** 轮询工作流识别进度。 */
+export function pollWorkflowJob(jobId: string): Promise<WorkflowJob> {
+  return getJson(`/api/v1/workflow/jobs/${jobId}`);
+}

@@ -146,7 +146,8 @@ export async function buildServer(config: AppConfig): Promise<FastifyInstance> {
     galleryRoot: path.join(config.dataRoot, "inspiration"),
     scriptPath: workflowScript,
     python: process.env.WORKFLOW_PYTHON ?? "/usr/bin/python3",
-    pythonPath: process.env.WORKFLOW_PYTHONPATH ?? path.join(modelsRoot, "pylibs39")
+    pythonPath: process.env.WORKFLOW_PYTHONPATH ?? path.join(modelsRoot, "pylibs39"),
+    liveAssetsRoot: path.join(config.dataRoot, "live-assets")
   });
 
   // 重分析队列一变就推一次统计（订阅放在路由注册之后，确保 inject 能找到 /gallery/stats）

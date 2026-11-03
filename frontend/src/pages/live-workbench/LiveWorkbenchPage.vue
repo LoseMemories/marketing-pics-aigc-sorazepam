@@ -1,82 +1,16 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import type { LiveAsset } from "@/entities/live-asset/model/live-asset.types";
-import CanvasStage from "@/features/canvas-renderer/components/CanvasStage.vue";
-import SubjectPulseOverlay, {
-  type SubjectOutline
-} from "@/features/canvas-renderer/components/SubjectPulseOverlay.vue";
-import AiDesignPanel from "@/features/design-assistant/components/AiDesignPanel.vue";
-import type { CompositionSpec } from "@/features/design-assistant/model/design-assistant.types";
-import type { SubjectMaskRegion } from "@/features/motion-effects/model/effect.types";
+import WorkbenchWorkflowPanel from "@/features/design-assistant/components/WorkbenchWorkflowPanel.vue";
 import PhotoLibraryStage from "@/features/photo-library/components/PhotoLibraryStage.vue";
-import type { EffectTimeline } from "@/features/motion-effects/model/effect.types";
-import { createEffectTimeline, emptyEffectTimeline } from "@/features/motion-effects/runtime/effect-timeline";
 
 const asset = ref<LiveAsset>();
-const timeline = ref<EffectTimeline>(emptyEffectTimeline);
 /** 实况开关：关闭后按静态图逻辑处理（不使用视频轨）。 */
 const isLive = ref(true);
-/** 画面分析得到的主体轮廓，供画布做“文字从人后出现”的遮挡。 */
-const subjectRegions = ref<SubjectMaskRegion[]>([]);
-/** 主体轮廓的完整几何（含矩形），只用于 L1 阶段的高亮叠加。 */
-const subjectOutlines = ref<SubjectOutline[]>([]);
-/** 设计面板里选中的主体标签：没选中的主体不参与闪烁。 */
-const selectedSubjectLabels = ref<string[]>([]);
-/** 设计面板当前停在哪个阶段；停在 L1（=1）才在原图上呼吸高亮主体。 */
-const designStage = ref(0);
-const l1Highlight = ref(false);
-
-/** 只保留被选中的主体；一个都没选就不闪。 */
-const pulseOutlines = computed(() => {
-  const selected = new Set(selectedSubjectLabels.value);
-  return subjectOutlines.value.filter((outline) => outline.label && selected.has(outline.label));
-});
 
 function useAsset(nextAsset: LiveAsset): void {
   asset.value = nextAsset;
-  timeline.value = emptyEffectTimeline;
   isLive.value = true;
-  subjectRegions.value = [];
-  subjectOutlines.value = [];
-  selectedSubjectLabels.value = [];
-  designStage.value = 0;
-  l1Highlight.value = false;
-}
-
-function useAnalysis(analysis: {
-  subjectRegions: readonly {
-    label?: string;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    points?: readonly { x: number; y: number }[];
-  }[];
-}): void {
-  subjectRegions.value = analysis.subjectRegions.map((region) => ({
-    ...(region.points ? { points: region.points } : {})
-  }));
-  subjectOutlines.value = analysis.subjectRegions.map((region) => ({
-    ...(region.label ? { label: region.label } : {}),
-    x: region.x,
-    y: region.y,
-    width: region.width,
-    height: region.height,
-    ...(region.points ? { points: region.points } : {})
-  }));
-}
-
-function useStage(stage: number): void {
-  designStage.value = stage;
-  l1Highlight.value = stage === 1;
-}
-
-function useSelection(labels: string[]): void {
-  selectedSubjectLabels.value = labels;
-}
-
-function useComposition(composition: CompositionSpec): void {
-  timeline.value = createEffectTimeline(composition.layers, composition.durationMs);
 }
 </script>
 
@@ -86,8 +20,8 @@ function useComposition(composition: CompositionSpec): void {
       <p class="kicker">PHOTO MARKETING LAB</p>
       <h1>真实素材，<br /><em>即刻变成营销画面。</em></h1>
       <p class="intro-lead">
-        实况与静态照片统一入库：按真实比例浏览、原声预览，再由 DeepSeek 理解画面，
-        在预览上编排受控的 Canvas 文字与光点动效。
+        实况与静态照片统一入库：按真实比例浏览、原声预览，再由 DeepSeek 复用灵感工作流
+        理解画面——主体热区、风格色调与基础意图，为后续设计决策做准备。
       </p>
     </section>
 
@@ -98,41 +32,19 @@ function useComposition(composition: CompositionSpec): void {
           :live="isLive"
           @selected="useAsset"
           @update:live="isLive = $event"
-        >
-          <template #overlay="{ currentTimeMs, mediaWidth, mediaHeight, playing }">
-            <!-- 放在画布之前：让高亮位于文字/动效下方，不遮住内容 -->
-            <SubjectPulseOverlay
-              v-if="l1Highlight"
-              :outlines="pulseOutlines"
-              :media-width="mediaWidth"
-              :media-height="mediaHeight"
-            />
-            <CanvasStage
-              :timeline="timeline"
-              :time-ms="currentTimeMs"
-              :media-width="mediaWidth"
-              :media-height="mediaHeight"
-              :playing="isLive && playing"
-              :subject-regions="subjectRegions"
-            />
-          </template>
-        </PhotoLibraryStage>
+        />
       </div>
 
       <div class="panel design-card">
-        <AiDesignPanel
+        <WorkbenchWorkflowPanel
           v-if="asset"
           :asset="asset"
           :live="isLive"
-          @composed="useComposition"
-          @analyzed="useAnalysis"
-          @update:stage="useStage"
-          @update:selection="useSelection"
         />
         <section v-else class="design-empty" aria-labelledby="design-empty-title">
-          <span class="eyebrow">02 · AI DESIGN</span>
-          <h3 id="design-empty-title">画面理解与动效编排</h3>
-          <p>先从图库中选择一张实况照片，这里会提供主体识别、文案编排与 Canvas 动效生成。</p>
+          <span class="eyebrow">02 · 素材识别</span>
+          <h3 id="design-empty-title">主图 / 风格 / 意图三步理解</h3>
+          <p>先从图库中选择一张素材，这里会复用灵感工作流完成主体识别、风格分析与意图判断。</p>
         </section>
       </div>
     </div>

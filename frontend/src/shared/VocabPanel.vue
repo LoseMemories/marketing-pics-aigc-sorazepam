@@ -288,9 +288,10 @@ function cellColor(heat: number, text: number): string {
   box-shadow: 0 0 0 1px rgb(255 255 255 / 20%);
 }
 
-/* 10×10 热力图：左侧网格，右侧说明/图例 */
+/* 10×10 热力图：左侧网格，右侧说明/图例；窄容器时说明自动换行到下方 */
 .heat-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   align-items: flex-start;
   margin: 8px 0 6px;
@@ -303,7 +304,7 @@ function cellColor(heat: number, text: number): string {
   max-width: var(--heat-max, 190px);
 }
 .heat-side {
-  flex: 1 1 auto;
+  flex: 1 1 140px;
   min-width: 0;
 }
 .heat-cell {

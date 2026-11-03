@@ -2,7 +2,7 @@ import { readdir, readFile, writeFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 import type { FastifyInstance } from "fastify";
-import { currentCatalogVersion } from "./gallery-cache.js";
+import { currentCatalogVersion, invalidateGalleryCatalog } from "./gallery-cache.js";
 import { currentRetryKeys, currentFailedKeys } from "../../shared/events/retry-events.js";
 
 // 动图（gif）先隐藏，资源保留；只列静态图
@@ -768,6 +768,8 @@ export async function registerGalleryRoutes(
     } catch {
       return reply.code(500).send({ error: "write failed" });
     }
+    // 收藏状态写进 meta 后，扫描缓存必须失效，否则 /stats 的收藏计数一直是旧值
+    invalidateGalleryCatalog();
     return { ok: true, favorite };
   });
 

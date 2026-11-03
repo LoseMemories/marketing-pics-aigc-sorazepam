@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { copyFile, mkdir, readdir, readFile, unlink, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readdir, readFile, stat, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import type { FastifyInstance } from "fastify";
@@ -96,7 +96,15 @@ const jobs = new Map<string, Job>();
  */
 export async function registerWorkflowRoutes(
   app: FastifyInstance,
-  opts: { uploadDir: string; galleryRoot: string; scriptPath: string; python: string; pythonPath: string }
+  opts: {
+    uploadDir: string;
+    galleryRoot: string;
+    scriptPath: string;
+    python: string;
+    pythonPath: string;
+    /** live-assets 根目录：工作台对图库素材复用同一条分析管线 */
+    liveAssetsRoot: string;
+  }
 ): Promise<void> {
   const pendingDir = path.join(opts.uploadDir, ".pending");
   const batchDir = path.join(opts.uploadDir, ".batches");
@@ -358,6 +366,47 @@ export async function registerWorkflowRoutes(
       .then((parsed) => {
         parsed.pendingId = name;
         parsed.imageUrl = `/gallery/motionsites/uploads/.pending/${encodeURIComponent(name)}`;
+        job.result = parsed;
+        job.status = "done";
+      })
+      .catch((err: Error) => {
+        job.status = "error";
+        job.error = err.message;
+      });
+
+    return { jobId: id };
+  });
+
+  // ---------- 工作台：对图库素材复用同一条分析管线 ----------
+  app.post("/api/v1/workflow/analyze-live-asset", async (request, reply) => {
+    const body = (request.body ?? {}) as { assetId?: string };
+    const assetId = body.assetId;
+    if (!assetId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(assetId)) {
+      return reply.code(400).send({ error: "bad assetId" });
+    }
+    const imgPath = path.join(opts.liveAssetsRoot, assetId, "preview", "poster.jpg");
+    try {
+      if (!(await stat(imgPath)).isFile()) return reply.code(404).send({ error: "asset poster not found" });
+    } catch {
+      return reply.code(404).send({ error: "asset poster not found" });
+    }
+
+    const id = randomUUID();
+    const job: Job = { id, status: "running", steps: [], startedAt: Date.now() };
+    jobs.set(id, job);
+    // 结果只落盘到临时目录，不动 live-assets 本体；前端展示用 stdout 回传
+    const jsonPath = path.join(opts.uploadDir, ".workbench", `${id}.deepseek.json`);
+
+    spawnAnalyze(imgPath, jsonPath, (s) => {
+      const existing = job.steps.find((x) => x.step === s.step);
+      if (existing) {
+        existing.status = s.status;
+        if (s.detail) existing.detail = s.detail;
+      } else {
+        job.steps.push(s);
+      }
+    })
+      .then((parsed) => {
         job.result = parsed;
         job.status = "done";
       })
