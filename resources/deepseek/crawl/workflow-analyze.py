@@ -20,19 +20,50 @@ ENV_PATH = os.environ.get("DEEPSEEK_ENV_FILE") or os.path.join(
     PROJECT_ROOT, "backend", ".env.local"
 )
 PROMPT_PATH = os.path.join(ROOT, "crawl", "ds-subject-prompt.md")
-VOCAB_PROMPT_PATH = os.path.join(ROOT, "docs", "12-设计语汇分析提示词-v3.2-代码回填版.md")
+VOCAB_PROMPT_PATH = os.path.join(ROOT, "docs", "14-设计语汇分析提示词-v4.1.md")
 COLS = ROWS = 10
-CATEGORY_SET = {"3d", "creative", "ecommerce", "landingpage", "magazine", "technology", "travel"}
+# carton（二次元 / 动漫）与商业分类并列，见 workflow.routes.ts 的 CATEGORY_ALIASES
+CATEGORY_SET = {
+    "3d",
+    "creative",
+    "ecommerce",
+    "landingpage",
+    "magazine",
+    "technology",
+    "travel",
+    "carton",
+}
+CATEGORY_ALIASES = {
+    "动漫": "carton",
+    "二次元": "carton",
+    "anime": "carton",
+    "漫画": "carton",
+    "cartoon": "carton",
+}
+
 
 def normalize_category(value):
     """06 只能给字典内类别；无法判断/不在字典内一律 null（前端显示未归类）。"""
     if not isinstance(value, str):
         return None
     value = value.strip().lower()
-    return value if value in CATEGORY_SET else None
+    if value in CATEGORY_SET:
+        return value
+    return CATEGORY_ALIASES.get(value.strip())
+
+_STEP_START = {}
 
 def progress(step, status, detail=""):
-    print(f"PROGRESS|{step}|{status}|{detail}", file=sys.stderr, flush=True)
+    if status == "running":
+        # 同一阶段可能多次 running（如 OCR 多尺度），只在首次记录起点，避免计时被覆盖
+        if step not in _STEP_START:
+            _STEP_START[step] = time.time()
+        print(f"PROGRESS|{step}|{status}|{detail}", file=sys.stderr, flush=True)
+    else:
+        t = _STEP_START.pop(step, None)
+        if t is not None:
+            detail = f"{detail} · {time.time() - t:.2f}s" if detail else f"{time.time() - t:.2f}s"
+        print(f"PROGRESS|{step}|{status}|{detail}", file=sys.stderr, flush=True)
 
 def load_env():
     env = {}
@@ -57,7 +88,7 @@ def deepseek_subjects(img_pil, key):
     body = {"model": "deepseek-flash", "messages": [{"role": "user", "content": [
         {"type": "text", "text": prompt},
         {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}}
-    ]}], "max_tokens": 6000}
+    ]}], "max_tokens": 6000, "reasoning_effort": "none"}
     req = urllib.request.Request("https://api.deepseek.com/chat/completions",
         data=json.dumps(body).encode(),
         headers={"Content-Type": "application/json", "Authorization": f"Bearer {key}"})
@@ -184,6 +215,24 @@ def normalize_style(style):
     style['colorMood'] = mood
     return style
 
+def _text_fact(idx, t, W, H):
+    """把 OCR 框转成 06 能判断「视觉重量」的 facts：面积占比 + 字高。"""
+    b = t.get("bbox")
+    area = 0.0
+    height = 0
+    if isinstance(b, list) and len(b) == 4:
+        try:
+            x1, y1, x2, y2 = [float(v) for v in b]
+            w, h = max(0.0, x2 - x1), max(0.0, y2 - y1)
+            if W and H:
+                area = round(w * h / (W * H) * 100, 2)
+            height = int(round(h))
+        except (TypeError, ValueError):
+            pass
+    return {"id": f"t{idx}", "content": t.get("content"), "bbox": b,
+            "areaPct": area, "heightPx": height}
+
+
 def deepseek_vocabulary(img_pil, key, subjects, texts, mask_cov, W, H):
     import urllib.request
     raw = open(VOCAB_PROMPT_PATH, encoding="utf-8").read()
@@ -200,7 +249,7 @@ def deepseek_vocabulary(img_pil, key, subjects, texts, mask_cov, W, H):
         "subjects": [{"id": f"s{i}", "subject": s.get("subject"),
                       "category": s.get("category"), "role": s.get("role"),
                       "bbox": s.get("bbox")} for i, s in enumerate(subjects or [])],
-        "ocrTexts": [{"content": t.get("content"), "bbox": t.get("bbox")} for t in (texts or [])][:40]
+        "ocrTexts": [_text_fact(i, t, W, H) for i, t in enumerate((texts or [])[:40])]
     }
     ask = (doc + "\n\n---\n【本次图片的已知物理事实（必须一致，勿改动 bbox）】\n"
            + json.dumps(facts, ensure_ascii=False)
@@ -213,7 +262,8 @@ def deepseek_vocabulary(img_pil, key, subjects, texts, mask_cov, W, H):
              "style{styleTags[],texture,complexity,era}, "
              "scene{sceneTags[],emotionTags[],purpose,intent,series}, "
              "designGuidance{sceneSubject,initialOcclusion,actualOcclusion,copyDesign}")
-    small = img_pil.copy(); small.thumbnail((896, 896))
+    small = img_pil.copy()
+    small.thumbnail((896, 896))
     buf = io.BytesIO(); small.save(buf, format="JPEG", quality=85)
     b64 = base64.b64encode(buf.getvalue()).decode()
     last_usage = {}
@@ -223,7 +273,7 @@ def deepseek_vocabulary(img_pil, key, subjects, texts, mask_cov, W, H):
         body = {"model": "deepseek-flash", "messages": [{"role": "user", "content": [
             {"type": "text", "text": ask},
             {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}}
-        ]}], "max_tokens": mt}
+        ]}], "max_tokens": mt, "reasoning_effort": "none"}
         req = urllib.request.Request("https://api.deepseek.com/chat/completions",
             data=json.dumps(body).encode(),
             headers={"Content-Type": "application/json", "Authorization": f"Bearer {key}"})
@@ -348,6 +398,13 @@ def main():
     steps = []
     progress("主体探查", "running", "DeepSeek 视觉定位中")
     subjects, usage = deepseek_subjects(img_pil, key)
+    # 兜底：模型偶发返回 0 主体，重试一次（只在 0 时触发，正常图无额外耗时）
+    if not subjects:
+        progress("主体探查", "running", "0 个主体，重试一次")
+        retry, usage2 = deepseek_subjects(img_pil, key)
+        if retry:
+            subjects = retry
+            usage = usage2
     _rl.log_stage("subjects", tokens=usage.get("total_tokens"), count=len(subjects))
     steps.append({"step": "主体探查 (DeepSeek)", "ok": True, "count": len(subjects),
                   "detail": f"{usage.get('total_tokens', '?')} tokens"})
@@ -397,6 +454,22 @@ def main():
         analysis, vusage = deepseek_vocabulary(img_pil, key, subjects, rec.get("texts") or [],
                                                rec.get("maskCoverage"), W, H)
         # 色相/调色板由 design_fill.enrich 统一投影，这里不再处理
+        # 保底：面积最大的 2 条文案即使模型跳过（常见于艺术字/乱码 OCR），也强制保留
+        _ocr = rec.get("texts") or []
+        _ranked = sorted(
+            [(i, (float(t["bbox"][2]) - float(t["bbox"][0])) * (float(t["bbox"][3]) - float(t["bbox"][1])))
+             for i, t in enumerate(_ocr)
+             if isinstance(t.get("bbox"), list) and len(t["bbox"]) == 4],
+            key=lambda x: -x[1])[:2]
+        _have = {str((t or {}).get("id")) for t in (analysis.get("texts") or [])}
+        for _i, _area in _ranked:
+            if _area <= 0:
+                continue
+            _tid = f"t{_i}"
+            if _tid in _have:
+                continue
+            analysis.setdefault("texts", []).append({"id": _tid, "level": None, "content": None})
+            _have.add(_tid)
         analysis["category"] = normalize_category(analysis.get("category"))
         analysis["image_id"] = base
         analysis["width"] = W

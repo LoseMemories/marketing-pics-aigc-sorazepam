@@ -42,11 +42,42 @@ const CATEGORIES = [
   { v: "3d", label: "3D" }, { v: "creative", label: "创意" },
   { v: "ecommerce", label: "电商" }, { v: "landingpage", label: "hero主页" },
   { v: "magazine", label: "杂志" }, { v: "technology", label: "科技" },
-  { v: "travel", label: "旅行" }
+  { v: "travel", label: "旅行" },
+  { v: "carton", label: "二次元" }
 ];
 const batch = ref<null | { id: string; title: string; total: number; done: number; failed: number; status: string }>(null);
 let batchTimer = 0;
 const elapsed = ref(0);
+
+/** 文案框 → 10×10 文案热区（与后端 gallery 同一算法），供 VocabPanel 渲染「文案区(T)」 */
+function textGridOf(
+  texts: Array<{ bbox?: number[] }> | undefined,
+  width: number,
+  height: number,
+  cols = 10,
+  rows = 10
+): number[] | null {
+  if (!texts?.length || !width || !height) return null;
+  const cells = new Array<number>(cols * rows).fill(0);
+  const cw = width / cols;
+  const ch = height / rows;
+  for (const t of texts) {
+    const b = t?.bbox;
+    if (!Array.isArray(b) || b.length !== 4) continue;
+    const [x1 = 0, y1 = 0, x2 = 0, y2 = 0] = b;
+    if (x2 <= x1 || y2 <= y1) continue;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const ix = Math.max(0, Math.min(x2, (c + 1) * cw) - Math.max(x1, c * cw));
+        const iy = Math.max(0, Math.min(y2, (r + 1) * ch) - Math.max(y1, r * ch));
+        const pct = Math.round(((ix * iy) / (cw * ch)) * 100);
+        const idx = r * cols + c;
+        if (pct > (cells[idx] ?? 0)) cells[idx] = pct;
+      }
+    }
+  }
+  return cells.some((v) => v > 0) ? cells : null;
+}
 
 const wfDetection = computed(() => {
   const r = result.value;
@@ -58,7 +89,7 @@ const wfDetection = computed(() => {
     cols: 10,
     rows: 10,
     colorGrid: r.colorGrid ?? null,
-    textGrid: null
+    textGrid: textGridOf(r.texts, r.width, r.height)
   };
 });
 
@@ -76,6 +107,14 @@ function statusOf(name: string): "idle" | "running" | "done" {
   const s = jobSteps.value.find((x) => x.step === name);
   if (!s) return "idle";
   return s.status === "running" ? "running" : "done";
+}
+
+/** 从步骤 detail 里提取耗时（Python 侧 done 时追加 ` · X.XXs`） */
+function durationOf(name: string): string {
+  const s = jobSteps.value.find((x) => x.step === name);
+  if (!s) return "";
+  const m = (s.detail || "").match(/(\d+\.\d{1,2})s/);
+  return m ? `${m[1]}s` : "";
 }
 
 function pickFile() { fileInput.value?.click(); }
@@ -162,7 +201,7 @@ async function analyze() {
   try {
     const fd = new FormData();
     fd.append("file", currentFile.value);
-    const res = await fetch("/api/v1/workflow/analyze", { method: "POST", body: fd });
+    const res = await fetch(`/api/v1/workflow/analyze`, { method: "POST", body: fd });
     const start = await res.json();
     if (!res.ok) throw new Error(start.error || `HTTP ${res.status}`);
     const jobId = start.jobId as string;
@@ -217,7 +256,7 @@ async function analyze() {
         <small>{{ s.desc }}</small>
         <span class="dot-state">
           {{ statusOf(s.title) === "done"
-            ? "✓ 完成"
+            ? (durationOf(s.title) ? `✓ 完成 · ${durationOf(s.title)}` : "✓ 完成")
             : busy && statusOf(s.title) === "running"
               ? "运行中…"
               : saved
@@ -307,7 +346,7 @@ async function analyze() {
               :vocabulary="result.analysis"
               :detection="wfDetection"
               heat-size="40%"
-              style="--heat-max: 300px"
+              style="--heat-max: 210px"
             />
           </div>
 

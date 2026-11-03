@@ -4,5 +4,10 @@ declare module "*.vue" {
   export default component;
 }
 
+declare module "*.png" {
+  const src: string;
+  export default src;
+}
+
 declare const __APP_MODE__: "creator" | "demo";
 declare const __PHOTO_HELPER_URL__: string;

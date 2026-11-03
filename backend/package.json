@@ -13,15 +13,18 @@
   "dependencies": {
     "@fastify/cors": "^11.1.0",
     "@fastify/multipart": "^9.3.0",
+    "@fastify/websocket": "^11.3.4",
     "dotenv": "^17.2.3",
     "fastify": "^5.6.0",
     "ffmpeg-static": "^5.2.0",
     "ffprobe-static": "^3.1.0",
     "openai": "^6.10.0",
+    "ws": "^8.22.0",
     "zod": "^4.1.0"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
+    "@types/ws": "^8.18.2",
     "tsx": "^4.20.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.0"
