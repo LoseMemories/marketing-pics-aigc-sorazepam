@@ -4,6 +4,11 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { invalidateGalleryCatalog } from "../gallery/gallery-cache.js";
+import {
+  notifyRetryStateChange,
+  setFailedKeyProvider,
+  setRetryKeyProvider
+} from "../../shared/events/retry-events.js";
 
 interface JobStep { step: string; status: string; detail: string }
 interface Job {
@@ -46,6 +51,7 @@ export interface BatchManifest {
 /** 灵感库字典分类；06 未给出确切值时一律不归类。 */
 const CATEGORY_SET = new Set([
   "3d",
+  "carton",
   "creative",
   "ecommerce",
   "landingpage",
@@ -55,6 +61,9 @@ const CATEGORY_SET = new Set([
 ]);
 const CATEGORY_ALIASES: Record<string, string> = {
   "3D": "3d",
+  "动漫": "carton",
+  "二次元": "carton",
+  "anime": "carton",
   "创意": "creative",
   "电商": "ecommerce",
   "hero主页": "landingpage",
@@ -100,7 +109,11 @@ export async function registerWorkflowRoutes(
     (raw || "upload").replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 60) || "upload";
 
   /** 起一个 python 分析进程，把 PROGRESS 行回调出去 */
-  function spawnAnalyze(imgPath: string, jsonPath: string, onStep: (s: JobStep) => void): Promise<Record<string, unknown>> {
+  function spawnAnalyze(
+    imgPath: string,
+    jsonPath: string,
+    onStep: (s: JobStep) => void
+  ): Promise<Record<string, unknown>> {
     return new Promise((resolve, reject) => {
       let stdout = "";
       const child = spawn(opts.python, [opts.scriptPath, imgPath, jsonPath], {
@@ -183,6 +196,36 @@ export async function registerWorkflowRoutes(
   }
 
   /** 与图库 detection 字段同形，供对比面板复用 VocabPanel 的热区/色块图。 */
+  /** 文案框 → 10×10 热区（与图库列表同一算法，保证对比面板有文案热区） */
+  function textGridOf(
+    texts: Array<{ bbox?: number[] }>,
+    width: number,
+    height: number,
+    cols = 10,
+    rows = 10
+  ): number[] | null {
+    if (!texts.length || !width || !height) return null;
+    const cells = new Array<number>(cols * rows).fill(0);
+    const cw = width / cols;
+    const ch = height / rows;
+    for (const t of texts) {
+      const b = t?.bbox;
+      if (!Array.isArray(b) || b.length !== 4) continue;
+      const [x1 = 0, y1 = 0, x2 = 0, y2 = 0] = b;
+      if (x2 <= x1 || y2 <= y1) continue;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const ix = Math.max(0, Math.min(x2, (c + 1) * cw) - Math.max(x1, c * cw));
+          const iy = Math.max(0, Math.min(y2, (r + 1) * ch) - Math.max(y1, r * ch));
+          const pct = Math.round(((ix * iy) / (cw * ch)) * 100);
+          const idx = r * cols + c;
+          if (pct > (cells[idx] ?? 0)) cells[idx] = pct;
+        }
+      }
+    }
+    return cells.some((v) => v > 0) ? cells : null;
+  }
+
   function detectionFromRec(rec: Record<string, unknown> | null): Record<string, unknown> | null {
     if (!rec) return null;
     const width = Number(rec.width) || 0;
@@ -192,6 +235,7 @@ export async function registerWorkflowRoutes(
       ? (rec.colorGrid as Array<{ region: number; color: string; layer: string }>)
       : null;
     const subjects = Array.isArray(rec.subjects) ? (rec.subjects as unknown[]) : [];
+    const texts = Array.isArray(rec.texts) ? (rec.texts as Array<{ bbox?: number[] }>) : [];
     const subjectCount =
       typeof rec.subjectCount === "number" ? (rec.subjectCount as number) : subjects.length;
     if (!heatGrid && !colorGrid) return null;
@@ -201,11 +245,36 @@ export async function registerWorkflowRoutes(
       cols: 10,
       rows: 10,
       colorGrid,
-      textGrid: null,
+      textGrid: textGridOf(texts, width, height),
       width,
       height
     };
   }
+
+  /** 重分析队列状态变化 → 推给 WebSocket 订阅方（只影响标签计数，不重查列表）。 */
+  function emitRetryState(): void {
+    let retrying = 0;
+    for (const task of retryJobs.values()) {
+      if (task.job.status === "queued" || task.job.status === "running") retrying += 1;
+    }
+    // 文件夹卡片的「有 x 条在重试」来自扫描结果，队列变化需让缓存失效
+    invalidateGalleryCatalog();
+    notifyRetryStateChange({ retrying });
+  }
+
+  // 图库侧按「重试中」筛选时，需要知道哪些素材正在队列里
+  setRetryKeyProvider(() =>
+    [...retryJobs.values()]
+      .filter((task) => task.job.status === "queued" || task.job.status === "running")
+      .map((task) => `${task.category}/${task.base}`)
+  );
+
+  // 「失败」筛选：执行出错、但仍保留在队列里的任务
+  setFailedKeyProvider(() =>
+    [...retryJobs.values()]
+      .filter((task) => task.job.status === "error")
+      .map((task) => `${task.category}/${task.base}`)
+  );
 
   /** 重分析队列：最多 2 个并行，其余保持 queued。 */
   function pumpRetryQueue(): void {
@@ -214,6 +283,7 @@ export async function registerWorkflowRoutes(
       if (!task) break;
       retryRunning += 1;
       task.job.status = "running";
+      emitRetryState();
       spawnAnalyze(task.imgPath, task.candidateDeepseek, (s) => {
         const existing = task.job.steps.find((x) => x.step === s.step);
         if (existing) {
@@ -239,13 +309,17 @@ export async function registerWorkflowRoutes(
             nextDetection: detectionFromRec(parsed)
           };
           task.job.status = "done";
+          // 候选文件已落盘 → 图库扫描缓存必须失效，否则「需更新」会停在旧数量
+          invalidateGalleryCatalog();
+          emitRetryState();
         })
         .catch(async (err: Error) => {
           await unlink(task.candidateDeepseek).catch(() => {});
           await unlink(task.candidateAnalysis).catch(() => {});
+          // 失败不删任务：保留在队列里供「失败」筛选与重试，否则状态既不在重试也不在可更新
           task.job.status = "error";
           task.job.error = err.message;
-          retryJobs.delete(task.key);
+          emitRetryState();
         })
         .finally(() => {
           retryRunning -= 1;
@@ -337,22 +411,24 @@ export async function registerWorkflowRoutes(
     }
     manifest.total = manifest.items.length;
     if (!manifest.total) return reply.code(400).send({ error: "no files" });
-    await writeManifest(manifest);
-    reply.code(202).send({ batchId: id, total: manifest.total });
+    // 只有一张不走文件夹：直接当单张上传处理，避免出现「1 张的文件夹」
+    const asBatch = manifest.total > 1;
+    if (asBatch) await writeManifest(manifest);
+    reply.code(202).send({ batchId: asBatch ? id : null, total: manifest.total });
 
     // 后台串行分析（不阻塞响应）
     void (async () => {
       for (const item of manifest.items) {
         item.status = "running";
-        await writeManifest(manifest);
+        if (asBatch) await writeManifest(manifest);
         const imgPath = path.join(pendingDir, item.name);
         const jsonPath = imgPath.replace(/\.[^.]+$/, ".deepseek.json");
         try {
           const parsed = await spawnAnalyze(imgPath, jsonPath, () => {});
           const analysis = (parsed.analysis ?? {}) as Record<string, unknown>;
-          // v3.2 的 06 语汇分析会给出 category；缺失或不在字典内 → 未归类
+          // 06 语汇分析会给出 category；缺失或不在字典内 → 未归类
           const category = normalizeCategory(analysis.category);
-          await commitPending(item.name, category, id);
+          await commitPending(item.name, category, asBatch ? id : undefined);
           item.status = "done";
           manifest.done += 1;
         } catch (err) {
@@ -360,10 +436,12 @@ export async function registerWorkflowRoutes(
           item.error = (err as Error).message;
           manifest.failed += 1;
         }
+        if (asBatch) await writeManifest(manifest);
+      }
+      if (asBatch) {
+        manifest.status = "done";
         await writeManifest(manifest);
       }
-      manifest.status = "done";
-      await writeManifest(manifest);
     })();
   });
 
@@ -417,6 +495,8 @@ export async function registerWorkflowRoutes(
     if (existing && (existing.job.status === "queued" || existing.job.status === "running")) {
       return { jobId: existing.job.id, status: existing.job.status };
     }
+    // 失败的任务直接重新入队（复用原记录前先清掉）
+    if (existing) retryJobs.delete(key);
 
     const dir = path.join(opts.galleryRoot, category);
     const imgPath = path.join(dir, file);
@@ -424,6 +504,8 @@ export async function registerWorkflowRoutes(
     const candidateAnalysis = path.join(dir, `${base}.rerun.analysis.json`);
     await unlink(candidateDeepseek).catch(() => {});
     await unlink(candidateAnalysis).catch(() => {});
+    // 候选文件被清掉 → 「需更新」计数需要重算
+    invalidateGalleryCatalog();
 
     const oldAnalysis = await readJson<Record<string, unknown>>(path.join(dir, `${base}.analysis.json`));
     const oldRec = await readJson<Record<string, unknown>>(path.join(dir, `${base}.deepseek.json`));
@@ -448,6 +530,7 @@ export async function registerWorkflowRoutes(
     };
     retryJobs.set(key, task);
     retryQueue.push(task);
+    emitRetryState();
     pumpRetryQueue();
     return { jobId: id, status: job.status };
   });
@@ -458,9 +541,27 @@ export async function registerWorkflowRoutes(
       base: task.base,
       file: task.file,
       title: task.title,
-      status: task.job.status
+      status: task.job.status,
+      error: task.job.error ?? null
     }))
   }));
+
+  /** 放弃：把失败任务从队列里剔除（不碰原有识别结果）。 */
+  app.post("/api/v1/workflow/reanalyze/discard", async (request, reply) => {
+    const body = request.body as { category?: string; base?: string; file?: string };
+    const category = (body?.category ?? "").replace(/[^a-zA-Z0-9-]/g, "");
+    const base = path
+      .basename(body?.base ?? body?.file ?? "")
+      .replace(/\.[^.]+$/, "");
+    if (!category || !base) return reply.code(400).send({ error: "bad request" });
+    const dir = path.join(opts.galleryRoot, category);
+    await unlink(path.join(dir, `${base}.rerun.analysis.json`)).catch(() => {});
+    await unlink(path.join(dir, `${base}.rerun.deepseek.json`)).catch(() => {});
+    retryJobs.delete(`${category}/${base}`);
+    invalidateGalleryCatalog();
+    emitRetryState();
+    return { ok: true };
+  });
 
   app.get("/api/v1/workflow/reanalyze/compare", async (request, reply) => {
     const { category, base } = request.query as { category?: string; base?: string };
@@ -503,6 +604,9 @@ export async function registerWorkflowRoutes(
       await unlink(candAnalysis).catch(() => {});
       await unlink(candDeepseek).catch(() => {});
       retryJobs.delete(`${category}/${base}`);
+      // 采纳后语汇层与候选文件都变了 → 统计与缩略图需重扫
+      invalidateGalleryCatalog();
+      emitRetryState();
       return { ok: true, choice };
     } catch (err) {
       return reply.code(500).send({ error: (err as Error).message });

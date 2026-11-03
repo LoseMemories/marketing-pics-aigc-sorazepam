@@ -9,6 +9,14 @@ import numpy as np
 
 # ---------------- 颜色基础 ----------------
 
+def _iou(a, b):
+    ix = max(0.0, min(a[2], b[2]) - max(a[0], b[0]))
+    iy = max(0.0, min(a[3], b[3]) - max(a[1], b[1]))
+    inter = ix * iy
+    ua = (a[2]-a[0])*(a[3]-a[1]) + (b[2]-b[0])*(b[3]-b[1]) - inter
+    return inter / ua if ua > 0 else 0.0
+
+
 def hex2rgb(h):
     h = str(h).lstrip("#")
     if len(h) == 3:
@@ -204,6 +212,58 @@ def _size_sc(t):
     return abs(b[3] - b[1]) * 0.75 + abs(b[2] - b[0]) * 0.25
 
 
+def _at_corner(x, y, margin=0.28):
+    """是否落在四角区域（用于 logo 近似：刊名/商标常在角落孤立出现）。"""
+    return (x < margin or x > 1 - margin) and (y < margin or y > 1 - margin)
+
+
+def classify_levels(texts, W, H):
+    """纯代码文案层级判定，替代模型判 level（对齐提示词规则）。
+
+    规则（与 v2-A 提示词一致）：
+    - 一张图唯一主标题 = 视觉重量最大的一条（面积 70% + 字高 30%）
+    - 重量第二且足够大（≥ 主标题 40%）→ 副标题
+    - 底部小字（法务/页码/条码）→ 小字
+    - 角落孤立中等字 → logo（近似）
+    - 其余拿不准 → 小字（宁小勿空）
+    稳定、确定性：同一输入必然同一输出，不依赖模型。
+    """
+    if not texts:
+        return texts
+
+    def area_pct(t):
+        b = t.get("bbox") or [0, 0, 0, 0]
+        return max(0.0, (b[2] - b[0]) * (b[3] - b[1])) / max(1, W * H) * 100
+
+    def weight(t):
+        b = t.get("bbox") or [0, 0, 0, 0]
+        a = max(0.0, (b[2] - b[0]) * (b[3] - b[1])) / max(1, W * H) * 100
+        h = max(0.0, b[3] - b[1]) / max(1, H) * 100
+        return a * 0.7 + h * 0.3
+
+    ranked = sorted(texts, key=weight, reverse=True)
+    top_w = weight(ranked[0])
+    ranked[0]["level"] = "主标题"
+
+    # 副标题：重量第二且足够大
+    if len(ranked) >= 2:
+        ranked[1]["level"] = "副标题" if weight(ranked[1]) >= top_w * 0.4 else "小字"
+
+    # 其余：底部小字 / 角落 logo / 兜底小字
+    for t in ranked[2:]:
+        b = t.get("bbox") or [0, 0, 0, 0]
+        a = area_pct(t)
+        y_center = ((b[1] + b[3]) / 2) / max(1, H)
+        x_center = ((b[0] + b[2]) / 2) / max(1, W)
+        if a < 1.5 and y_center > 0.85:
+            t["level"] = "小字"          # 法务/页码/条码注
+        elif _at_corner(x_center, y_center) and a < 8:
+            t["level"] = "logo"          # 角落孤立刊名/商标
+        else:
+            t["level"] = "小字"
+    return texts
+
+
 def infer_levels(texts):
     """模型漏填 level 时的兜底：按视觉重量补成「主标题/副标题/小字」。
     规则与提示词一致——一张图只有一个主标题。"""
@@ -221,6 +281,36 @@ def infer_levels(texts):
             has_sub = True
         else:
             t["level"] = "小字"
+    return texts
+
+
+def fix_level_contradictions(texts, W, H):
+    """按面积复查层级，修「大字被判小字」的矛盾。规则：
+    最大的一条必须是主标题（原主标题降为副标题）；
+    面积 ≥ 最大×0.6 且不是主/副标题/logo/装饰字 → 升为副标题。"""
+    def area(t):
+        b = t.get("bbox") or [0, 0, 0, 0]
+        if not W or not H:
+            return 0.0
+        return max(0.0, (b[2] - b[0]) * (b[3] - b[1]) / (W * H) * 100)
+
+    if not texts:
+        return texts
+    biggest = max(texts, key=area)
+    top = area(biggest)
+    if top <= 0:
+        return texts
+    if biggest.get("level") != "主标题":
+        for t in texts:
+            if t.get("level") == "主标题":
+                r = area(t) / top
+                t["level"] = "副标题" if r >= 0.6 else ("正文" if r >= 0.15 else "小字")
+        biggest["level"] = "主标题"
+    for t in texts:
+        if t is biggest or t.get("level") in ("主标题", "副标题", "logo", "装饰字"):
+            continue
+        if area(t) >= top * 0.6:
+            t["level"] = "副标题"
     return texts
 
 
@@ -365,24 +455,27 @@ def enrich(analysis, ds, img):
         **color_metrics(centers, shares, pal),
     }
 
-    # 文案：模型语义 tX ↔ OCR bbox
+    # 文案融合规则：
+    #   重合（与 OCR 框 IoU > 0.45）→ 保留更精准的区域 + facts(OCR) 原文
+    #   不重合 → 视为补漏，用 DeepSeek 的框与内容
     texts = []
     for t in (analysis.get("texts") or []):
         tid = str(t.get("id") or "")
-        m = re.fullmatch(r"t(\d+)", tid)          # 只有 tN 才对应 OCR 序号
+        m = re.fullmatch(r"t(\d+)", tid)
         idx = int(m.group(1)) if m else None
         bbox = t.get("bbox")
-        # 已有像素框（幂等重算）就沿用，不再按 id 重映射
         if not (isinstance(bbox, list) and len(bbox) == 4 and max(abs(float(v)) for v in bbox) > 1.5):
             bbox = None
+        src_content = None
         if bbox is None and idx is not None and idx < len(ocr_texts):
             bbox = ocr_texts[idx].get("bbox")
-            if not t.get("content"):
-                t["content"] = ocr_texts[idx].get("content")
+            src_content = ocr_texts[idx].get("content")
         if not bbox:
             continue
         texts.append({
-            "id": tid, "level": t.get("level"), "content": t.get("content"),
+            "id": tid, "level": t.get("level"),
+            # 区域来自 OCR 时，内容也用 facts 原文，避免模型改写导致错位
+            "content": src_content if src_content is not None else t.get("content"),
             "fontStyle": t.get("fontStyle"), "relation": t.get("relation"),
             "bbox": [float(v) for v in bbox],
             "color": text_color(img, bbox, W, H),
@@ -390,11 +483,31 @@ def enrich(analysis, ds, img):
             "inSubject": overlaps_subject(bbox, heat, W, H) if heat else False,
             "source": "ocr",
         })
+
     for i, cb in enumerate(analysis.get("copyBackfill") or []):
         b = cb.get("bbox")
         if not isinstance(b, list) or len(b) != 4:
             continue
         bbox = [b[0] * W, b[1] * H, (b[0] + b[2]) * W, (b[1] + b[3]) * H]
+        if bbox[2] <= bbox[0] or bbox[3] <= bbox[1]:
+            continue
+        # 与已有文案框比对：重合则合并，不重合才作为补漏新增
+        best, best_iou = None, 0.0
+        for t in texts:
+            v = _iou(bbox, t["bbox"])
+            if v > best_iou:
+                best, best_iou = t, v
+        if best is not None and best_iou > 0.45:
+            a_exist = (best["bbox"][2] - best["bbox"][0]) * (best["bbox"][3] - best["bbox"][1])
+            a_new = (bbox[2] - bbox[0]) * (bbox[3] - bbox[1])
+            if a_new < a_exist:           # 模型框更紧，保留更精准的区域
+                best["bbox"] = bbox
+                best["color"] = text_color(img, bbox, W, H)
+                best["align"] = text_align(bbox, W)
+                best["inSubject"] = overlaps_subject(bbox, heat, W, H) if heat else False
+            if not (best.get("content") or "").strip():
+                best["content"] = cb.get("content")   # 原文缺失才用模型内容
+            continue
         texts.append({
             "id": "v%d" % i, "level": None, "content": cb.get("content"),
             "fontStyle": None, "relation": None, "bbox": bbox,
@@ -403,9 +516,10 @@ def enrich(analysis, ds, img):
             "inSubject": overlaps_subject(bbox, heat, W, H) if heat else False,
             "source": "vlm",
         })
+
     # 补漏已并进 texts，清掉原始清单，避免重复回填
     analysis.pop("copyBackfill", None)
-    texts = assign_emphasis(infer_levels(texts))
+    texts = assign_emphasis(fix_level_contradictions(infer_levels(texts), W, H))
     texts.sort(key=lambda t: (t["bbox"][1], t["bbox"][0]))
     analysis["texts"] = texts
 

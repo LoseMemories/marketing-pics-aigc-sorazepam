@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { SUBJECT_PROMPT, VOCAB_PROMPT } from "./prompts";
+import workflowCompareShot from "@/assets/docs/workflow-v-compare.png";
 
 interface StackRow { k: string; v: string }
 interface ExpRow { name: string; verdict: "adopt" | "drop" | "revise"; note: string }
@@ -16,12 +17,13 @@ interface StepDoc {
   experiments: ExpRow[];
   results: StackRow[];
   legacy: string;
-  /** 自定义段落（归因型步骤用）：列表 / 键值 / 表格 */
+  /** 自定义段落（归因型步骤用）：列表 / 键值 / 表格 / 配图 */
   blocks?: Array<{
     h: string;
     bullets?: string[];
     kv?: StackRow[];
     table?: { cols: string[]; rows: string[][] };
+    img?: { src: string; alt: string; caption?: string };
   }>;
 }
 
@@ -33,26 +35,28 @@ const steps: StepDoc[] = [
     tagline: "先把「值得学的图」攒够",
     goal: "建立一批真实商业投放素材作为设计参考语料，要求覆盖多种品类与版式，而不是随机图片堆。",
     done: [
-      "从 **Motionsites** 站点按频道采集整站首屏与封面，共 **230 张**",
-      "以「**文件夹即分类**」归档：magazine 109 / landingpage 47 / 3d 26 / creative 19 / technology 12 / travel 9 / ecommerce 8",
+      "从 **Motionsites** 站点按频道采集商业投放首屏与封面，加上后来补充的**动漫封面语料**，共 **275 条**",
+      "以「**文件夹即分类**」归档：magazine 103 / carton 49 / landingpage 42 / 3d 26 / creative 19 / technology 12 / travel 9 / ecommerce 8",
       "每张图旁挂同名**元数据**（title、来源、付费标记）与 `-prompt.md` 提示词副本",
       "逐张**人工复核**，删除 4 张不合格的 landingpage（Bolt / Email Landing Page / Intelligent Systems / Health Portal）",
       "上传通道并入同一套目录规范，落进 `uploads/`，与采集素材共享同一条**分析管线**"
     ],
     stack: [
-      { k: "采集对象", v: "**Motionsites** 商业站点，按频道分文件夹" },
+      { k: "采集对象", v: "商业站点首屏 + 二次元封面，按频道 / 题材分文件夹" },
       { k: "存储形态", v: "**文件系统**：目录 = 分类，文件名 = 语义 ID" },
       { k: "元数据", v: "`<base>.json` + `<base>-prompt.md`" },
       { k: "为什么不用数据库", v: "分类会变、素材会增删，目录方案零迁移成本，也方便脚本直接跑" }
     ],
     experiments: [
       { name: "**全站随机抓取**", verdict: "drop", note: "噪声过大，后期清洗成本高于收益" },
-      { name: "**按频道定向采集** + 人工复核", verdict: "adopt", note: "保留 230 张，分类边界清晰" }
+      { name: "**按频道定向采集** + 人工复核", verdict: "adopt", note: "商业素材分频道归档，边界清晰" },
+      { name: "只有商业投放语料", verdict: "revise", note: "判据套不住二次元封面，后续补了 `carton` 49 张，倒逼 Workflow 跟着改（见 08）" }
     ],
     results: [
-      { k: "原始语料", v: "230 张" },
-      { k: "入库素材", v: "232 条（含 6 条上传）" },
-      { k: "分类数", v: "8 类" }
+      { k: "素材总量", v: "275 条" },
+      { k: "分类数", v: "8 类（含 `carton`）" },
+      { k: "上传素材", v: "7 条（含 2 个批次文件夹）" },
+      { k: "人工剔除", v: "4 张" }
     ],
     legacy: "后续若扩充品类，只需新增目录，前后端与检索无需改动。"
   },
@@ -88,9 +92,9 @@ const steps: StepDoc[] = [
       { name: "**OCR 像素 bbox** 落格", verdict: "adopt", note: "同一张图从 82 格降到 49 格，边界明显更贴合" }
     ],
     results: [
-      { k: "语汇覆盖率", v: "232 / 232" },
-      { k: "v2.0 物理层", v: "126 / 232" },
-      { k: "含 OCR 文字", v: "203 / 232" },
+      { k: "语汇覆盖率", v: "275 / 275" },
+      { k: "v2.0 物理层", v: "126 张（历史口径）" },
+      { k: "含 OCR 文字", v: "203 张（历史口径）" },
       { k: "热区粒度", v: "10×10（100 格）" }
     ],
     legacy: "magazine 仍有 104 张走旧 YOLO 热区；上传通道未产出 OCR，文字区回退到语汇层坐标。"
@@ -102,7 +106,7 @@ const steps: StepDoc[] = [
     tagline: "让模型只说「设计话」，不说「代码话」",
     goal: "把画面翻译成一段设计师能直接复用的自然语言，禁止输出任何代码、Tailwind 类名或实现细节，最终作为 RAG 的 few-shot 注入下游生成。",
     done: [
-      "提示词从 v1.0 迭代到 **v3.0**，共 12 个版本，每版都由真实错例驱动",
+      "提示词从 v1.0 迭代到 **v3.8**，每版都由真实错例驱动",
       "v3.0 做**职责拆分**：删掉六条铁律里的几何条款（bbox 贴合、面积自洽、网格编号），改成一条边界——**不输出坐标，只解释给定的 sX / tX**",
       "主体框交由 **SAM**、文字框交由 **OCR**，语汇层不再测量位置，只负责「它是什么、在做什么、为什么这样排",
       "新增「**遮挡偏好**」与「**遮挡分析**」：判断主体是否被压、被什么颜色压，并给出是否建议避让",
@@ -137,7 +141,7 @@ const steps: StepDoc[] = [
   {
     key: "library",
     n: "04",
-    title: "灵感库与入库工作流",
+    title: "灵感库与入库 Workflow",
     tagline: "从「能看」到「能被检索、能被复用」",
     goal: "把结构化结果做成可浏览、可检索、可增量的灵感库，并让新素材能一条流水线走完从上传到入库。",
     done: [
@@ -145,7 +149,7 @@ const steps: StepDoc[] = [
       "前端灵感库按分类切页，卡片按**图片宽高比**自适应，行内**两端对齐**",
       "悬浮浮层展示完整设计语汇：语义摘要、主体热区、色块分布、风格层、场景层、设计建议",
       "热区用颜色区分语义：主体（黄绿）、文案区（蓝）、文字重叠主体（青）",
-      "上传工作流固化为 7 步：主体探查 → SAM 分割 → 热区计算 → 色块探查 → 文字探查 → 语汇分析 → 写入结果",
+      "上传 Workflow 固化为 7 步：主体探查 → SAM 分割 → 热区计算 → 色块探查 → 文字探查 → 语汇分析 → 写入结果",
       "落库同时写物理层与语汇层，保证新素材和存量素材结构一致"
     ],
     stack: [
@@ -158,57 +162,24 @@ const steps: StepDoc[] = [
       { name: "**页面自适应排布**：纯 CSS flex → JS 计算行高 + 单张成行占满", verdict: "adopt", note: "纯 flex 会把末行拉伸到失真；改计算行高后行满宽但不夸张，浮层也顺势改为「卡片另一侧 + 视口吸附」" }
     ],
     results: [
-      { k: "入库素材", v: "232 条" },
+      { k: "入库素材", v: "275 条" },
       { k: "上传管线", v: "7 步 · 约 90 秒" },
       { k: "落库产物", v: "2 个 JSON" },
-      { k: "下一步", v: "Linux 部署" }
+      { k: "下一步", v: "向量检索" }
     ],
-    legacy: "检索目前是目录扫描 + 前端过滤，向量召回尚未上线；部署方案已定，待执行。"
-  },
-  {
-    key: "deploy",
-    n: "05",
-    title: "检索与部署",
-    tagline: "让 232 条素材真正被「按意思」检索到",
-    goal: "把「目录扫描 + 前端过滤」换成「元数据硬过滤 + 向量召回」的混合检索，并把整套服务迁到一台 Linux 单机上。",
-    done: [
-      "检索分三层：**元数据硬过滤**（分类 / 色调 / 场景 / 构图）→ **向量召回** `embeddingText` → TopK 重排",
-      "`embeddingText` 在语汇阶段就已生成（主体 + 文字 + 风格 + 场景的拼接串），建索引时无需二次加工",
-      "知识库拆成**独立服务**：只暴露 `/search` 与 `/index`，不暴露公网",
-      "项目后端接前端请求 → 调 `/search` 拿 TopK → 把召回案例的「设计结论」拼成 few-shot → 调 DeepSeek",
-      "**Nginx** 托管前端静态资源，并反向代理 `/api`；前后端与知识库用 **Docker Compose** 编排",
-      "Embedding 走本地 **bge** 或 API，二选一，配置在环境变量里切换"
-    ],
-    stack: [
-      { k: "知识库服务", v: "**FastAPI** + 向量库，容器内网通信" },
-      { k: "向量库", v: "先 **LanceDB**（单机零运维），规模上来再换 **Qdrant**" },
-      { k: "检索契约", v: "`POST /search` 收 semanticText + 元数据过滤条件，返回 TopK" },
-      { k: "部署拓扑", v: "Nginx → 后端(:3000) → 知识库(:8000) → 向量库" }
-    ],
-    experiments: [
-      { name: "**目录扫描 + 前端过滤**（当前实现）", verdict: "revise", note: "232 条时够用，但只能按分类/字段筛，问「适合人像压字的版式」筛不出来" },
-      { name: "**纯向量召回**", verdict: "revise", note: "会召回风格相近但场景不对的案例（沙漠日落 vs 家居暖光），必须先做元数据硬过滤" },
-      { name: "**元数据硬过滤 + 向量召回**", verdict: "adopt", note: "先用分类/色调/构图缩小候选，再按语义排序，召回质量明显更稳" }
-    ],
-    results: [
-      { k: "待索引素材", v: "232 条" },
-      { k: "元数据维度", v: "4 类（分类/色调/场景/构图）" },
-      { k: "当前状态", v: "未实施" },
-      { k: "部署目标", v: "Linux 单机" }
-    ],
-    legacy: "向量检索与 Linux 部署均未落地，当前线上仍是目录扫描；这是本项目最后一块拼图。"
+    legacy: "检索目前是目录扫描 + 前端过滤，向量召回尚未上线；存储契约与检索设计见 07。"
   },
   {
     key: "perf",
-    n: "06",
-    title: "工作流提速：v3.1 → v3.2",
+    n: "05",
+    title: "Workflow 提速：v3.1 → v3.2",
     tagline: "先归因，再动刀；不猜",
     goal: "单张分析要 90 秒上下，用户等不了。要求先定位真正的瓶颈，再决定改哪里——而不是看到慢就换模型。",
     done: [],
     stack: [],
     experiments: [],
     results: [],
-    legacy: "v3.1 完整保留（`docs/11-…-v3.1-稳定版.md`），任何时点可回退；下一步是把 64×64 mask 存进 deepseek.json，让主体主色摆脱 bbox 取样的误差。",
+    legacy: "v3.1 完整保留（`docs/11-…-v3.1-稳定版.md`），任何时点可回退；v3.2 之后又按真实错例继续迭代，当前版本是 **v3.8**。",
     blocks: [
       {
         h: "归因过程",
@@ -265,7 +236,7 @@ const steps: StepDoc[] = [
   },
   {
     key: "intake",
-    n: "07",
+    n: "06",
     title: "上传即入库：组、类与生命周期",
     tagline: "素材不是一次定稿，是可以被持续改进的对象",
     goal:
@@ -292,14 +263,109 @@ const steps: StepDoc[] = [
       { name: "重分析直接覆盖原结果", verdict: "revise", note: "改成写候选 + 人工对比，保留可回退" }
     ],
     results: [
-      { k: "图库规模", v: "224 条素材 · 1 个批量文件夹" },
-      { k: "magazine 全量", v: "104 张全部 v3.2，100% 有文案热区" },
-      { k: "重试队列", v: "2 并行，3 个任务实测 2 running + 1 queued" },
-      { k: "分析耗时", v: "v3.2 单张 20–40s；批量串行，10 张约 5–8 分钟" }
+      { k: "图库规模", v: "275 条素材 · 2 个批量文件夹" },
+      { k: "magazine 全量", v: "103 张全部 v3.8，100% 有文案热区" },
+      { k: "重试队列", v: "2 并行，多任务实测 2 running + N queued" },
+      { k: "分析耗时", v: "v3.8 单张 20–40s；批量串行，10 张约 5–8 分钟" }
     ],
     legacy:
       "批次清单与候选文件仍停在目录扫描层，还没进统一数据层；收藏只落了 `favorite` 字段，尚未映射成知识库的「**优质素材**」标签。"
-  }
+  },
+  {
+    key: "kb",
+    n: "07",
+    title: "知识库结构与检索设计",
+    tagline: "一条素材就是四个文件，检索分三段走",
+    goal:
+      "知识库不是「把图放进文件夹」就完事：要能被机器读懂、能被增量更新、能在几百到几万条规模下按**意思**而不是按**文件名**找到。所以先把存储契约钉死，再把检索拆成三层。",
+    done: [
+      "一条素材 = **四个文件**：`<base>.webp`（原图）、`<base>.json`（元数据）、`<base>.deepseek.json`（物理层）、`<base>.analysis.json`（语汇层）",
+      "**物理层**：`subjects[]` / `maskHeatGrid`（10×10，每格 0–100）/ `maskCoverage` / `colorGrid`（逐格中位色 + HSV 层）/ `texts[]`（像素 bbox）/ `width` / `height`",
+      "**语汇层**：`semanticSummary` / `embeddingText` / `style` / `scene` / `composition` / `geometry` / `texts[]`（层级）/ `designGuidance` / `meta`",
+      "**检测层回退链**：`deepseek.json` → `florence.json` → `detect.json`，缺一个就退到下一个，保证老素材也能渲染热区",
+      "**元数据**：`title` / `tags` / `category` / `batchId` / `favorite` / `access`，是唯一可人工改写的层",
+      "检索三段式：**元数据硬过滤**（分类 / 色调 / 场景 / 构图）→ **稠密向量召回**（`embeddingText`）→ **TopK 重排**",
+      "索引即扫描：目录一变索引就变，没有独立同步任务；扫描结果带 **30s TTL + 版本号**，上传 / 删除 / 采纳后立即失效",
+      "分页检索：每个分类维护一条**乱序队列 + 前移游标**（只增不减），翻多少页都不会重复返回同一张",
+      "计数与列表解耦：筛选区数字由 `/stats` 独立返回，滚动加载不影响数字；重试队列变化通过 **WebSocket** 单帧推送，前端只做响应式更新"
+    ],
+    stack: [
+      { k: "存储形态", v: "**文件系统即索引**：目录 = 分类，文件名 = 语义 ID，无数据库、零迁移成本" },
+      { k: "向量字段", v: "`embeddingText` 在语汇阶段就已生成（主体 + 文字 + 风格 + 场景拼接串），建索引无需二次加工" },
+      { k: "向量库", v: "先 **LanceDB**（单机零运维），规模上来换 **Qdrant**" },
+      { k: "检索契约", v: "`POST /search`（semanticText + filters）→ TopK；`POST /index` 做增量" },
+      { k: "一致性", v: "写操作 bump 缓存版本号；前端靠 WebSocket 拿到计数变更，不重查列表" }
+    ],
+    experiments: [
+      { name: "**目录扫描 + 前端过滤**（当前实现）", verdict: "revise", note: "275 条时够用，但只能按字段筛，「适合人像压字的版式」筛不出来" },
+      { name: "**纯向量召回**", verdict: "revise", note: "会召回风格相近但场景不对的案例（沙漠日落 vs 家居暖光）" },
+      { name: "**硬过滤 + 向量 + 重排**", verdict: "adopt", note: "先用结构化字段缩候选，再按语义排序，召回质量最稳" },
+      { name: "**把三个 JSON 合成一个**", verdict: "drop", note: "物理层会随算法替换重算，语汇层要保留历史对比，混在一起就失去了「只重算一层」的能力" }
+    ],
+    results: [
+      { k: "素材总量", v: "275 条 · 8 个分类" },
+      { k: "语汇覆盖", v: "275 / 275（100%）" },
+      { k: "单条存储", v: "4 个文件（1 图 + 3 JSON）" },
+      { k: "向量召回", v: "未上线（契约已定）" }
+    ],
+    legacy:
+      "向量检索与 `/search` 仍是设计态，线上走目录扫描；好处是任何一步都能人工看文件核对，代价是语义检索暂时缺位。"
+  },
+  {
+    key: "anime",
+    n: "08",
+    title: "Workflow 强化 V4.1：动漫素材适配",
+    tagline: "商业海报的判据，套不住二次元封面",
+    goal:
+      "其余七段吃的是商业投放素材——主体清晰、文案规整、语言统一。加入动漫 / 二次元语料后，这套判据开始失效：**主体常常是「一群角色」或「根本没有实体主体」**，文案是**多语言文字叠异形字体**，焦点被装饰框线打散。要让同一套 Workflow 也读得懂它们。",
+    done: [
+      "分类字典从 7 类扩到 **8 类**，新增 `carton`（别名 `动漫` / `二次元` / `anime` 统一归一化）",
+      "**允许 0 主体**：不再强制找「一个实体商品」，群像 / 角色列阵识别为多主体，纯插画背景老实落到色块层",
+      "无主体时走 **10×10 逐格中位色 + HSV 分层 + 文案区**，避免把整幅插画当成一个主体框",
+      "群像封面按角色拆主体：**每个角色一个主体框**，热区不再糊成一整块",
+      "**OCR 多尺度择优**：异形字体、描边字、竖排假名在小尺度丢失时自动回退大尺度，取召回最好的一档",
+      "文字层级交给语汇层（主标题 / 副标题 / logo / 小字），物理层只提供 bbox，避免两处各说一套",
+      "`design_fill.py` 本地回填数值（调色板 / 对比度 / 重点度 / 构图焦点），模型只负责「说人话」，异形字体的排版判断不再被数值字段挤掉预算"
+    ],
+    stack: [
+      { k: "主体探查", v: "**DeepSeek 视觉**出语义 + bbox，显式支持「多主体」「无主体」两种返回" },
+      { k: "像素分割", v: "**SAM ViT-B** 逐主体几何提示，群像时按角色框逐一分割后合并" },
+      { k: "文字探查", v: "**EasyOCR 多尺度**——小尺度拿密集小字，大尺度救描边 / 艺术字，取最优" },
+      { k: "兜底路径", v: "无主体 → 色块 + HSV；有主体 → 热区 + 文案区叠加" },
+      { k: "分类", v: "8 类字典 + 别名归一化，`carton` 与商业分类享受同一条落库管线" }
+    ],
+    experiments: [
+      { name: "沿用「必有实体主体」的假设", verdict: "drop", note: "动漫封面大量是角色 + 装饰，强找主体会框到整幅插画" },
+      { name: "**允许 0 主体 + 群像多主体**", verdict: "adopt", note: "同一张图从「0 主体、只出色块」变成「6 个角色框 + 文案区」" },
+      { name: "单尺度 OCR", verdict: "drop", note: "描边标题与竖排假名容易漏，召回不稳定" },
+      { name: "**多尺度 OCR 择优**", verdict: "adopt", note: "日文标题 / 英文副题 / 中文小字能在同一张图上分别取到" },
+      { name: "让模型同时给数值与文案", verdict: "revise", note: "输出预算被数值字段吃掉，思考 token 撞上限后正文为空；改由代码回填" }
+    ],
+    results: [
+      { k: "动漫语料", v: "carton 49 张" },
+      { k: "群像封面主体", v: "0 → **多个**（按角色计数）" },
+      { k: "文案层级", v: "主标题 / 副标题 / logo / 小字" },
+      { k: "重试次数", v: "V4.1 全程 0 次" }
+    ],
+    legacy:
+      "分析脚本 `workflow-analyze.py` 内的分类字典仍是 7 类（缺 `carton`），所以上传的动漫素材若被 06 判成 `carton`，落库时会归一化为「未归类」；目录分类不受影响。",
+    hero: {
+      src: workflowCompareShot,
+      alt: "动漫封面新旧分析结果对比",
+      caption:
+        "《魔法少女まどか☆マギカ》封面：旧版判成 0 主体、只出色块；V4.1 拆出 6 个主体并给出热区与文案层级（可在卡片上点「对比」查看实图）"
+    },
+    blocks: [
+      {
+        h: "效果对比：同一张动漫封面的新旧两次分析",
+        bullets: [
+          "左侧「当前版本」：判成 **0 个主体**，只产出逐格中位色的色块分布",
+          "右侧「新分析」：按角色拆出**多个主体框**，热区逐格给出重合占比，文案收敛并带上层级",
+          "同一张图，**从「看不出结构」变成「能看出谁在哪、字压在哪」**——这就是强化前后的具体差别"
+        ]
+      }
+    ]
+  },
 ];
 
 const active = ref(0);
@@ -331,7 +397,7 @@ const promptText = computed(() => (promptTab.value === "vocab" ? VOCAB_PROMPT : 
       <p class="eyebrow">PRODUCT · DOCS</p>
       <h1>产品文档</h1>
       <p class="sub">
-        从爬素材到素材库的七段建设：做了什么、用了什么、试错了几轮、为什么长成现在这样。
+        从爬素材到素材库的八段建设：做了什么、用了什么、试错了几轮、为什么长成现在这样。
       </p>
     </header>
 
@@ -364,9 +430,14 @@ const promptText = computed(() => (promptTab.value === "vocab" ? VOCAB_PROMPT : 
           </button>
         </div>
 
+        <figure v-if="cur.hero" class="hero-shot">
+          <img :src="cur.hero.src" :alt="cur.hero.alt" />
+          <figcaption v-html="rich(cur.hero.caption)"></figcaption>
+        </figure>
+
         <blockquote class="goal" v-html="rich(cur.goal)"></blockquote>
 
-        <template v-if="!cur.blocks">
+        <template v-if="cur.done.length || cur.stack.length || cur.experiments.length || cur.results.length">
         <section class="blk">
           <h3>做了什么</h3>
           <ul class="bullets">
@@ -406,7 +477,7 @@ const promptText = computed(() => (promptTab.value === "vocab" ? VOCAB_PROMPT : 
         </section>
 
         </template>
-        <template v-else>
+        <template v-if="cur.blocks">
           <section class="blk" v-for="(b, bi) in cur.blocks" :key="bi">
             <h3>{{ b.h }}</h3>
             <ul class="bullets" v-if="b.bullets">
@@ -428,6 +499,10 @@ const promptText = computed(() => (promptTab.value === "vocab" ? VOCAB_PROMPT : 
                 </tr>
               </tbody>
             </table>
+            <figure class="shot" v-if="b.img">
+              <img :src="b.img.src" :alt="b.img.alt" loading="lazy" />
+              <figcaption v-if="b.img.caption" v-html="rich(b.img.caption)"></figcaption>
+            </figure>
           </section>
         </template>
 
@@ -685,6 +760,51 @@ h1 {
 }
 .tbl tr:hover td {
   background: #12161a;
+}
+
+/* 文档配图：只做证明，不喧宾夺主 */
+.shot {
+  margin: 10px 0 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+.hero-shot {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+  margin: 0 0 18px;
+  max-width: 460px;
+}
+.hero-shot img {
+  width: 100%;
+  max-width: 460px;
+  height: auto;
+  border: 1px solid #232a31;
+  border-radius: 10px;
+  background: #0f1216;
+}
+.hero-shot figcaption {
+  color: #6f767f;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.shot img {
+  width: 100%;
+  max-width: 460px;
+  height: auto;
+  border: 1px solid #232a31;
+  border-radius: 10px;
+  background: #0f1216;
+  cursor: zoom-in;
+}
+.shot figcaption {
+  color: #6f767f;
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 .exps {

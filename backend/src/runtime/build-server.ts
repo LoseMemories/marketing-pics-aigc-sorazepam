@@ -2,7 +2,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import cors from "@fastify/cors";
 import multipart from "@fastify/multipart";
+import websocket from "@fastify/websocket";
 import Fastify, { type FastifyInstance } from "fastify";
+import type { WebSocket as WsSocket } from "ws";
 import { ZodError } from "zod";
 import { GetLiveAsset } from "../modules/live-asset/application/get-live-asset.js";
 import { ImportLiveAsset } from "../modules/live-asset/application/import-live-asset.js";
@@ -26,6 +28,7 @@ import { DeepSeekDesignAssistant } from "../modules/design-assistant/infrastruct
 import { LocalDesignAssetStore } from "../modules/design-assistant/infrastructure/local-design-asset-store.js";
 import { registerDesignAssistantRoutes } from "../modules/design-assistant/interfaces/http/design-assistant.routes.js";
 import { registerGalleryRoutes } from "../modules/gallery/gallery.routes.js";
+import { onRetryStateChange } from "../shared/events/retry-events.js";
 import { registerWorkflowRoutes } from "../modules/workflow/workflow.routes.js";
 
 export async function buildServer(config: AppConfig): Promise<FastifyInstance> {
@@ -71,6 +74,38 @@ export async function buildServer(config: AppConfig): Promise<FastifyInstance> {
     methods: ["GET", "POST"]
   });
   await app.register(multipart);
+  await app.register(websocket);
+
+  /**
+   * 统计推送：重试队列变化时推一次最新计数，前端只更新标签数字，
+   * 不触发列表重查或整页刷新。
+   */
+  const statsSockets = new Set<WsSocket>();
+
+  async function broadcastStats(retrying?: number): Promise<void> {
+    if (statsSockets.size === 0) return;
+    try {
+      const response = await app.inject({ method: "GET", url: "/api/v1/gallery/stats" });
+      if (response.statusCode !== 200) return;
+      const stats = response.json() as Record<string, unknown>;
+      const payload = JSON.stringify({
+        type: "stats",
+        stats: retrying === undefined ? stats : { ...stats, retrying }
+      });
+      for (const socket of statsSockets) {
+        if (socket.readyState === socket.OPEN) socket.send(payload);
+      }
+    } catch {
+      /* 推送失败忽略：下次事件或打开页面时会重新拉取 */
+    }
+  }
+
+  app.get("/ws/stats", { websocket: true }, (socket) => {
+    statsSockets.add(socket);
+    socket.on("close", () => statsSockets.delete(socket));
+    socket.on("error", () => statsSockets.delete(socket));
+    void broadcastStats();
+  });
 
   app.get("/health", async () => ({
     status: "ok",
@@ -112,6 +147,11 @@ export async function buildServer(config: AppConfig): Promise<FastifyInstance> {
     scriptPath: workflowScript,
     python: process.env.WORKFLOW_PYTHON ?? "/usr/bin/python3",
     pythonPath: process.env.WORKFLOW_PYTHONPATH ?? path.join(modelsRoot, "pylibs39")
+  });
+
+  // 重分析队列一变就推一次统计（订阅放在路由注册之后，确保 inject 能找到 /gallery/stats）
+  onRetryStateChange((change) => {
+    void broadcastStats(change.retrying);
   });
 
   app.setErrorHandler((error, _request, reply) => {

@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import type { FastifyInstance } from "fastify";
 import { currentCatalogVersion } from "./gallery-cache.js";
+import { currentRetryKeys, currentFailedKeys } from "../../shared/events/retry-events.js";
 
 // 动图（gif）先隐藏，资源保留；只列静态图
 const IMAGE_RE = /\.(webp|png|jpg|jpeg)$/i;
@@ -70,6 +71,8 @@ export interface GalleryItem {
   batchId: string | null;
   /** 存在 `<base>.rerun.analysis.json` 重分析候选，等待对比采纳。 */
   pendingRerun: boolean;
+  /** 重分析执行失败、任务仍留在队列里（可重试或放弃）。 */
+  retryFailed: boolean;
   /** 用户收藏 = 优质素材，沉淀知识库时映射为「是否优质素材」。 */
   favorite: boolean;
   /** 06 语汇分析给出的字典分类；未识别为 null（前端显示「未归类」）。 */
@@ -227,12 +230,21 @@ export async function registerGalleryRoutes(
   app.get("/api/v1/gallery/motionsites", async () => {
     const categories = new Set<string>();
     const items: GalleryItem[] = [];
+    const failedKeys = new Set(currentFailedKeys());
 
     /* 批量任务 → 灵感库文件夹（首图为封面，带进度） */
     const folders: Array<{
       id: string; title: string; total: number; done: number; failed: number;
       status: string; createdAt: number; cover: string | null;
+      retrying: number; pending: number;
     }> = [];
+    // 批次素材都在 uploads 下，扫一次文件名单用于判定「可更新」（有 rerun 候选）
+    let filesOfUploads: string[] = [];
+    try {
+      filesOfUploads = await readdir(path.join(root, "uploads"));
+    } catch {
+      /* 无 uploads 目录 */
+    }
     try {
       const bdir = path.join(root, "uploads", ".batches");
       for (const f of await readdir(bdir)) {
@@ -240,13 +252,24 @@ export async function registerGalleryRoutes(
         try {
           const m = JSON.parse(await readFile(path.join(bdir, f), "utf8")) as {
             id: string; title: string; total: number; done: number; failed: number;
-            status: string; createdAt: number; items: Array<{ name: string; status: string }>;
+            status: string; createdAt: number; items: Array<{ name: string; base?: string; status: string }>;
           };
           const firstDone = m.items?.find((x) => x.status === "done");
+          // 只有 1 张的批次不当作文件夹（图卡直接散落在「上传」里）
+          if ((m.total ?? 0) <= 1) continue;
+          // 批次内的素材状态：在重试队列里 / 已有候选可更新
+          const retryKeys = new Set(currentRetryKeys());
+          const bases = (m.items ?? []).map((x) => (x.base ?? x.name ?? "").replace(/\.[^.]+$/, ""));
+          const retryingCount = bases.filter((b) => retryKeys.has(`uploads/${b}`)).length;
+          const pendingCount = bases.filter((b) =>
+            filesOfUploads.includes(`${b}.rerun.analysis.json`)
+          ).length;
           folders.push({
             id: m.id, title: m.title, total: m.total, done: m.done ?? 0,
             failed: m.failed ?? 0, status: m.status, createdAt: m.createdAt,
-            cover: firstDone ? `/gallery/motionsites/uploads/${encodeURIComponent(firstDone.name)}` : null
+            cover: firstDone ? `/gallery/motionsites/uploads/${encodeURIComponent(firstDone.name)}` : null,
+            retrying: retryingCount,
+            pending: pendingCount
           });
         } catch { /* 跳过损坏清单 */ }
       }
@@ -365,6 +388,7 @@ export async function registerGalleryRoutes(
           batchId: (meta.batchId as string) ?? null,
           // 全量判据：同目录存在候选重分析结果即算「需更新」（与 /reanalyze/compare 一致）
           pendingRerun: files.includes(`${base}.rerun.analysis.json`),
+          retryFailed: failedKeys.has(`${category}/${base}`),
           favorite: Boolean(meta.favorite),
           autoCategory: autoCategoryOf(meta),
           tags: Array.isArray(meta.tags) ? (meta.tags as string[]) : [],
@@ -456,6 +480,31 @@ export async function registerGalleryRoutes(
       .filter((value) => value.length > 0);
   }
 
+  /** 状态筛选：favorite / retrying / needs-update / failed；其余值视为不过滤。 */
+  type StatusFilter = "favorite" | "retrying" | "needs-update" | "failed";
+
+  function parseStatus(raw: unknown): StatusFilter | null {
+    const value = typeof raw === "string" ? raw.trim().toLowerCase() : "";
+    if (value === "favorite" || value === "retrying" || value === "needs-update" || value === "failed") {
+      return value;
+    }
+    return null;
+  }
+
+  function baseOf(image: string): string {
+    return image.replace(IMAGE_RE, "");
+  }
+
+  /** 状态命中判定：needs-update 看候选文件，retrying / failed 看服务端队列。 */
+  function matchStatus(item: GalleryItem, status: StatusFilter, retryKeys: Set<string>): boolean {
+    if (status === "favorite") return item.favorite;
+    if (status === "needs-update") return item.pendingRerun;
+    if (status === "failed") {
+      return currentFailedKeys().includes(`${item.category}/${baseOf(item.image)}`);
+    }
+    return retryKeys.has(`${item.category}/${baseOf(item.image)}`);
+  }
+
   function shuffle<T>(input: T[]): T[] {
     const list = [...input];
     for (let i = list.length - 1; i > 0; i -= 1) {
@@ -500,6 +549,7 @@ export async function registerGalleryRoutes(
       favorite: catalog.items.filter((item) => item.favorite).length,
       analyzed: catalog.items.filter((item) => item.hasAnalysis).length,
       needsUpdate: catalog.items.filter((item) => item.pendingRerun).length,
+      failed: catalog.items.filter((item) => item.retryFailed).length,
       uploads: {
         folders: catalog.folders.length,
         folderItems,
@@ -510,9 +560,9 @@ export async function registerGalleryRoutes(
 
   /**
    * 第一步：拿总数与每个分类的可用量，并开启一个分页会话。
-   * categories 为空 → 后端兜底成「全部」分类。
+   * categories 为空 → 后端兜底成「全部」分类；status 为空 → 不限状态。
    */
-  app.get<{ Querystring: { categories?: string } }>(
+  app.get<{ Querystring: { categories?: string; status?: string; batch?: string } }>(
     "/api/v1/gallery/feed/meta",
     async (request) => {
       pruneSessions();
@@ -525,11 +575,25 @@ export async function registerGalleryRoutes(
       // 兜底：没传、传了不存在的、或全部过滤后为空 → 全部字典分类
       const effective = requested.length > 0 ? requested : available;
 
+      // 状态筛选（已收藏 / 重试中 / 需更新）同样走后端，避免只过滤已加载的几分页
+      const status = parseStatus(request.query.status);
+      const retryKeys = new Set(currentRetryKeys());
+      const batchId = typeof request.query.batch === "string" ? request.query.batch.trim() : "";
+      let source = status
+        ? catalog.items.filter((item) => matchStatus(item, status, retryKeys))
+        : catalog.items;
+      // 文件夹详情：只取该批次的素材（不受已加载分页限制）
+      if (batchId) {
+        source = source.filter((item) => item.batchId === batchId);
+      }
+
       const queues = new Map<string, GalleryItem[]>();
       const offsets = new Map<string, number>();
       const breakdown: Array<{ name: string; total: number }> = [];
-      for (const name of effective) {
-        const bucket = shuffle(catalog.items.filter((item) => item.category === name));
+      // 批次内素材都在 uploads 目录，统一进一个桶
+      const bucketNames = batchId ? ["uploads"] : effective;
+      for (const name of bucketNames) {
+        const bucket = shuffle(source.filter((item) => item.category === name));
         queues.set(name, bucket);
         offsets.set(name, 0);
         breakdown.push({ name, total: bucket.length });
@@ -538,7 +602,7 @@ export async function registerGalleryRoutes(
       const sessionId = randomUUID();
       feedSessions.set(sessionId, {
         id: sessionId,
-        categories: effective,
+        categories: batchId ? ["uploads"] : effective,
         queues,
         offsets,
         lastAccess: Date.now()
@@ -552,11 +616,13 @@ export async function registerGalleryRoutes(
 
       return {
         sessionId,
+        status,
         categories: breakdown,
         allCounts,
         total: breakdown.reduce((sum, entry) => sum + entry.total, 0),
         allCategories: available,
-        folders: catalog.folders
+        // 状态视图不展示批次文件夹，避免与筛选结果混在一起
+        folders: status ? [] : catalog.folders
       };
     }
   );

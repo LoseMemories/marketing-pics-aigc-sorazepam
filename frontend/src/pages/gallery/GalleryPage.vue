@@ -86,6 +86,8 @@ interface GalleryItem {
   batchId: string | null;
   /** 后端扫描时标记：存在重分析候选（`<base>.rerun.analysis.json`） */
   pendingRerun: boolean;
+  /** 后端扫描时标记：重分析执行失败，任务仍在队列里可重试/放弃 */
+  retryFailed?: boolean;
   favorite: boolean;
   autoCategory: string | null;
   tags: string[];
@@ -104,6 +106,9 @@ interface GalleryItem {
 interface GalleryFolder {
   id: string; title: string; total: number; done: number; failed: number;
   status: string; createdAt: number; cover: string | null;
+  /** 批次内正在重试 / 已有候选可更新的数量（由后端扫描得出） */
+  retrying?: number;
+  pending?: number;
 }
 interface GalleryData {
   categories: string[];
@@ -185,10 +190,13 @@ function openFolder(id: string) {
   history.pushState({}, "", `/inspiration/folder/${encodeURIComponent(id)}`);
   folderId.value = id;
   window.scrollTo({ top: 0 });
+  // 文件夹详情走后端按批次查询，不能靠已加载的几分页本地过滤
+  void resetFeed();
 }
 function closeFolder() {
   history.pushState({}, "", "/inspiration");
   folderId.value = null;
+  void resetFeed();
 }
 
 /** 分类筛选：文件夹里点其他分类时直接退出文件夹，回到该分类视角。 */
@@ -201,29 +209,29 @@ function selectCategory(category: string) {
   void resetFeed();
 }
 
-function selectStatus(status: "favorite" | "retrying" | "needs-update") {
+function selectStatus(status: "favorite" | "retrying" | "needs-update" | "failed") {
   if (folderId.value) closeFolder();
   statusFilter.value = statusFilter.value === status ? "" : status;
   if (statusFilter.value) selected.value = "all";
   window.scrollTo({ top: 0 });
+  // 状态筛选同样要走后端查询，而不是只过滤已加载的几分页
+  void resetFeed();
 }
 
 function onMobileFilterChange(event: Event): void {
   const value = (event.target as HTMLSelectElement).value;
   if (value.startsWith("status:")) {
     if (folderId.value) closeFolder();
-    statusFilter.value = value.slice(7) as "favorite" | "retrying" | "needs-update";
+    statusFilter.value = value.slice(7) as "favorite" | "retrying" | "needs-update" | "failed";
     selected.value = "all";
     window.scrollTo({ top: 0 });
+    void resetFeed();
     return;
   }
   selectCategory(value.slice(4));
 }
 const currentFolder = computed(() =>
   folderId.value ? folders.value.find((f) => f.id === folderId.value) ?? null : null
-);
-const showFolders = computed(
-  () => !folderId.value && !statusFilter.value && folders.value.length > 0 && selected.value === "uploads"
 );
 
 const DICTIONARY_CATEGORIES = new Set([
@@ -245,17 +253,14 @@ function effectiveCategoryOf(item: GalleryItem): string {
 
 const filtered = computed(() => {
   const all = data.value?.items ?? [];
-  if (statusFilter.value === "favorite") return all.filter((x) => x.favorite);
-  if (statusFilter.value === "retrying") return all.filter((x) => Boolean(retryStates.value[keyOf(x)]));
-  if (statusFilter.value === "needs-update") return all.filter((x) => Boolean(compareByKey.value[keyOf(x)]));
-  // 文件夹内只看该批次
-  if (folderId.value) return all.filter((x) => x.batchId === folderId.value);
+  // 文件夹详情与状态筛选都已由后端返回，这里不再二次过滤（否则会漏掉未加载的卡片）
+  if (folderId.value || statusFilter.value) return all;
   // 「全部」用随机穿插顺序；批次素材也打散，不在全部分类下以文件夹出现
   if (selected.value === "all") return ordered.value;
   if (selected.value === "uploads") {
-    // 「上传」筛选：显示文件夹 + 单张上传；批次素材收在文件夹里，不再散落
+    // 后端已只返回 uploads 分类；这里只需把批次素材收进文件夹，不散落
     const batchIds = new Set(folders.value.map((f) => f.id));
-    return all.filter((x) => x.category === "uploads" && !(x.batchId && batchIds.has(x.batchId)));
+    return all.filter((x) => !(x.batchId && batchIds.has(x.batchId)));
   }
   // 确切分类：单张与批次素材都分散展示（只要 06 识别到了该类）
   return all.filter((x) => effectiveCategoryOf(x) === selected.value);
@@ -278,6 +283,7 @@ const CAT_LABEL: Record<string, string> = {
   magazine: "杂志",
   technology: "科技",
   travel: "旅行",
+  carton: "二次元",
   uploads: "上传"
 };
 /** 卡片类别：上传素材取 06 识别的字典分类，未识别显示「未归类」 */
@@ -298,14 +304,34 @@ function arOf(item: GalleryItem): number {
 }
 
 type RowCard = { item: GalleryItem; w: number };
-type JRow = { h: number; cards: RowCard[] };
+type FolderCard = { folder: GalleryFolder; w: number };
+type JRow = { h: number; cards: Array<RowCard | FolderCard> };
+
+/** 文件夹卡片在行内的固定宽高比（接近 3/4 的卡片） */
+const FOLDER_AR = 0.78;
+
+/** 「上传」视图下参与混排的文件夹 */
+const uploadsFolders = computed(() =>
+  !folderId.value && !statusFilter.value && selected.value === "uploads"
+    ? folders.value
+    : []
+);
 
 const rows = computed<JRow[]>(() => {
   const W = gridW.value || 1310;
   const out: JRow[] = [];
-  let cur: GalleryItem[] = [];
+  type Entry = { kind: "item"; item: GalleryItem } | { kind: "folder"; folder: GalleryFolder };
+  // 文件夹与单图同一条序列，参与同一套行高计算
+  const feed: Entry[] = [
+    ...uploadsFolders.value.map((folder): Entry => ({ kind: "folder", folder })),
+    ...filtered.value.map((item): Entry => ({ kind: "item", item }))
+  ];
+  let cur: Entry[] = [];
   let sumAr = 0;
   let normalH = 0;
+
+  const arOfEntry = (entry: Entry): number =>
+    entry.kind === "folder" ? FOLDER_AR : arOf(entry.item);
 
   const flush = () => {
     if (!cur.length) return;
@@ -313,19 +339,26 @@ const rows = computed<JRow[]>(() => {
     const h = Math.max(FLOOR_H, Math.min(MAX_H, usable / sumAr));
     // 记录第一行真正「排满但不触顶」的高度，作为末行的正常尺寸
     if (!normalH && h > FLOOR_H && h < MAX_H) normalH = h;
-    out.push({ h, cards: cur.map((it) => ({ item: it, w: h * arOf(it) })) });
+    out.push({
+      h,
+      cards: cur.map((entry) =>
+        entry.kind === "folder"
+          ? { folder: entry.folder, w: h * FOLDER_AR }
+          : { item: entry.item, w: h * arOf(entry.item) }
+      )
+    });
     cur = [];
     sumAr = 0;
   };
 
-  for (const it of filtered.value) {
-    const ar = arOf(it);
+  for (const entry of feed) {
+    const ar = arOfEntry(entry);
     if (cur.length > 0) {
       // 并入这张会让行高跌破 MIN_H → 先收行
       const h = (W - cur.length * GAP) / (sumAr + ar);
       if (h < MIN_H) flush();
     }
-    cur.push(it);
+    cur.push(entry);
     sumAr += ar;
   }
   flush();
@@ -337,7 +370,9 @@ const rows = computed<JRow[]>(() => {
     const cap = normalH || prev?.h || NORMAL_H;
     if (last.h > cap) {
       last.h = cap;
-      for (const c of last.cards) c.w = cap * arOf(c.item);
+      for (const c of last.cards) {
+        c.w = cap * ("folder" in c ? FOLDER_AR : arOf(c.item));
+      }
     }
   }
   return out;
@@ -378,6 +413,7 @@ onMounted(async () => {
   mobileMedia.addEventListener("change", onMobileMediaChange);
   await resetFeed();
   void syncRetryEnabled();
+  connectStatsSocket();
   await nextTick();
   attachGridObserver();
   attachFeedObserver();
@@ -406,6 +442,10 @@ onBeforeUnmount(() => {
   ro = null;
   feedObserver?.disconnect();
   feedObserver = null;
+  window.clearTimeout(statsReconnectTimer);
+  window.clearTimeout(bumpTimer);
+  statsSocket?.close();
+  statsSocket = null;
 });
 
 const error = ref("");
@@ -423,6 +463,10 @@ const stats = ref<{
   favorite: number;
   analyzed: number;
   needsUpdate: number;
+  /** 重分析执行失败的数量 */
+  failed?: number;
+  /** WebSocket 推送时附带：排队 + 运行中的重分析任务数 */
+  retrying?: number;
   uploads: { folders: number; folderItems: number; singles: number };
 } | null>(null);
 const sentinelRef = ref<HTMLElement | null>(null);
@@ -430,8 +474,19 @@ let feedObserver: IntersectionObserver | null = null;
 
 /** 当前分类参数：全部 / 上传 传空，由后端兜底；其余传具体分类。 */
 function categoryParam(): string {
-  if (selected.value === "all" || selected.value === "uploads") return "";
+  // 「上传」也是个真实目录分类，走后端查才能拿全（不靠已加载分页）
+  if (selected.value === "all") return "";
   return selected.value;
+}
+
+/** 状态参数：已收藏 / 重试中 / 需更新 都交给后端筛选 */
+function statusParam(): string {
+  return statusFilter.value;
+}
+
+/** 批次参数：文件夹详情只看该批次 */
+function batchParam(): string {
+  return folderId.value ?? "";
 }
 
 /** 视口尺寸交给后端推算批量（后端按列宽/行高估 1.5 倍窗口量）。 */
@@ -462,10 +517,100 @@ async function loadStats(): Promise<void> {
   try {
     const res = await fetch("/api/v1/gallery/stats");
     if (!res.ok) return;
-    stats.value = (await res.json()) as typeof stats.value;
+    const data = (await res.json()) as NonNullable<typeof stats.value>;
+    // /stats 不含 retrying（只由 WebSocket 推送），保留当前值避免数字回退
+    stats.value = { ...data, retrying: stats.value?.retrying };
   } catch {
     /* 统计失败不阻塞图库 */
   }
+}
+
+/* ---------- 实时统计：WebSocket 单次推送，纯响应式更新标签 ---------- */
+/**
+ * 重试队列在服务端变化（入队/开跑/完成/采纳）时，后端推一次最新统计。
+ * 这里只替换计数对象并给「哪些数字变了」的标签加跳动动画，
+ * 不重新请求图库列表、不刷新页面。
+ */
+const bumpKeys = ref<Set<string>>(new Set());
+let statsSocket: WebSocket | null = null;
+let statsReconnectTimer = 0;
+let bumpTimer = 0;
+
+type StatsPayload = NonNullable<typeof stats.value>;
+
+/** 对比前后两次统计，返回数量发生变化的标签 key。 */
+function changedStatKeys(prev: StatsPayload | null, next: StatsPayload): string[] {
+  const changed: string[] = [];
+  if ((prev?.total ?? -1) !== next.total) changed.push("all");
+  const prevCats = new Map((prev?.categories ?? []).map((c) => [c.name, c.total]));
+  for (const category of next.categories ?? []) {
+    if (prevCats.get(category.name) !== category.total) changed.push(category.name);
+  }
+  if ((prev?.favorite ?? -1) !== next.favorite) changed.push("favorite");
+  if ((prev?.needsUpdate ?? -1) !== next.needsUpdate) changed.push("needs-update");
+  if ((prev?.failed ?? 0) !== (next.failed ?? 0)) changed.push("failed");
+  if ((prev?.retrying ?? 0) !== (next.retrying ?? 0)) changed.push("retrying");
+  const uploadTotal = (value: StatsPayload | null): number =>
+    (value?.uploads?.folderItems ?? 0) + (value?.uploads?.singles ?? 0);
+  if (uploadTotal(prev) !== uploadTotal(next)) changed.push("uploads");
+  return changed;
+}
+
+/** 标签跳动两下（动画在 CSS 里跑 2 次），结束后移除 class。 */
+function flashBumps(keys: string[]): void {
+  if (!keys.length) return;
+  bumpKeys.value = new Set(keys);
+  window.clearTimeout(bumpTimer);
+  bumpTimer = window.setTimeout(() => {
+    bumpKeys.value = new Set();
+  }, 900);
+}
+
+function connectStatsSocket(): void {
+  if (statsSocket) return;
+  const protocol = location.protocol === "https:" ? "wss" : "ws";
+  try {
+    statsSocket = new WebSocket(`${protocol}://${location.host}/ws/stats`);
+  } catch {
+    statsSocket = null;
+    return;
+  }
+  statsSocket.onmessage = (event) => {
+    try {
+      const payload = JSON.parse(String(event.data)) as { type?: string; stats?: StatsPayload };
+      if (payload.type !== "stats" || !payload.stats) return;
+      const prev = stats.value;
+      const changed = changedStatKeys(prev, payload.stats);
+      stats.value = payload.stats;
+      flashBumps(changed);
+      // 文件夹卡片的「有 x 条在重试 / 可更新」也要跟着变（轻量接口，不重查列表）
+      void refreshFolders();
+      // 正在看「重试中 / 需更新」列表时，数量变了就要重查，否则数字变了卡片不变
+      const viewingRetrying = statusFilter.value === "retrying";
+      const viewingNeedsUpdate = statusFilter.value === "needs-update";
+      const viewingFailed = statusFilter.value === "failed";
+      const retryingChanged = (prev?.retrying ?? 0) !== (payload.stats.retrying ?? 0);
+      const needsUpdateChanged = (prev?.needsUpdate ?? 0) !== payload.stats.needsUpdate;
+      const failedChanged = (prev?.failed ?? 0) !== (payload.stats.failed ?? 0);
+      if (
+        (viewingRetrying && retryingChanged) ||
+        (viewingNeedsUpdate && needsUpdateChanged) ||
+        (viewingFailed && failedChanged)
+      ) {
+        void resetFeed();
+      }
+    } catch {
+      /* 非法消息直接忽略 */
+    }
+  };
+  statsSocket.onerror = () => {
+    statsSocket?.close();
+  };
+  statsSocket.onclose = () => {
+    statsSocket = null;
+    window.clearTimeout(statsReconnectTimer);
+    statsReconnectTimer = window.setTimeout(connectStatsSocket, 3000);
+  };
 }
 
 /* ---------- 悬浮入口：打开画面分析工作流 ---------- */
@@ -495,7 +640,7 @@ async function resetFeed(): Promise<void> {
   feedSession.value = "";
   try {
     const res = await fetch(
-      `/api/v1/gallery/feed/meta?categories=${encodeURIComponent(categoryParam())}`,
+      `/api/v1/gallery/feed/meta?categories=${encodeURIComponent(categoryParam())}&status=${encodeURIComponent(statusParam())}&batch=${encodeURIComponent(batchParam())}`,
       { signal: feedAbort.signal }
     );
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -592,13 +737,19 @@ const analysisCount = computed(() => stats.value?.analyzed ?? data.value?.analys
 const favoriteCount = computed(
   () => stats.value?.favorite ?? items.value.filter((x) => x.favorite).length
 );
-/** 重试中：来自服务端重试队列，与已加载卡片数无关 */
-const retryingCount = computed(() => Object.keys(retryStates.value).length);
+/** 重试中：优先用服务端推送的全量值，未连上时回退到本地队列状态 */
+const retryingCount = computed(
+  () => stats.value?.retrying ?? Object.keys(retryStates.value).length
+);
 /** 需更新：后端按「存在 rerun 候选文件」全量统计，与已加载卡片数无关 */
 const needsUpdateCount = computed(
   () =>
     stats.value?.needsUpdate ??
-    items.value.filter((x) => Boolean(compareByKey.value[keyOf(x)])).length
+    items.value.filter((x) => x.pendingRerun || Boolean(compareByKey.value[keyOf(x)])).length
+);
+/** 失败：重分析执行出错、任务仍留在队列里的数量 */
+const failedCount = computed(
+  () => stats.value?.failed ?? items.value.filter((x) => x.retryFailed).length
 );
 const mobileFilterValue = computed(() =>
   statusFilter.value ? `status:${statusFilter.value}` : `cat:${selected.value}`
@@ -631,7 +782,7 @@ const pinned = ref(false);
 const popEl = ref<HTMLElement>();
 const reanalyzing = ref<Record<string, boolean>>({});
 const retryStates = ref<Record<string, "queued" | "running">>({});
-const statusFilter = ref<"" | "favorite" | "retrying" | "needs-update">("");
+const statusFilter = ref<"" | "favorite" | "retrying" | "needs-update" | "failed">("");
 const compareByKey = ref<Record<string, CompareEntry>>({});
 const compareHover = ref<{ entry: CompareEntry; top: number; left: number } | null>(null);
 const comparePopEl = ref<HTMLElement>();
@@ -819,12 +970,30 @@ function hasCompare(item: GalleryItem): boolean {
   return Boolean(compareByKey.value[keyOf(item)]);
 }
 
-function retryStateOf(item: GalleryItem): "" | "queued" | "running" | "compare" {
+function retryStateOf(item: GalleryItem): "" | "queued" | "running" | "compare" | "failed" {
   const key = keyOf(item);
-  if (compareByKey.value[key]) return "compare";
+  // 重试中优先于「对比」，否则点重试后卡片仍显示对比按钮
   if (retryStates.value[key]) return retryStates.value[key];
   if (reanalyzing.value[key]) return "running";
+  // pendingRerun 由后端扫描磁盘得出：有候选就该显示「对比」，即使内存里还没拉过对比数据
+  if (compareByKey.value[key] || item.pendingRerun) return "compare";
+  if (item.retryFailed) return "failed";
   return "";
+}
+
+/** 放弃：从失败队列剔除，卡片回到普通状态（原识别结果不动）。 */
+async function discardRetry(item: GalleryItem): Promise<void> {
+  try {
+    const res = await fetch("/api/v1/workflow/reanalyze/discard", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ category: item.category, base: item.image.replace(/\.[^.]+$/, "") })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (statusFilter.value === "failed") await resetFeed();
+  } catch (err) {
+    flash(`放弃失败：${(err as Error).message}`);
+  }
 }
 
 function isReanalyzing(item: GalleryItem): boolean {
@@ -889,18 +1058,35 @@ async function reanalyze(item: GalleryItem): Promise<void> {
 
 function onRetryClick(e: MouseEvent, item: GalleryItem): void {
   if (isReanalyzing(item)) return;
-  if (hasCompare(item)) {
-    showCompare(e, item);
+  if (hasCompare(item) || item.pendingRerun) {
+    void openCompareFor(e, item);
     return;
   }
   void reanalyze(item);
 }
 
+/** 对比数据按需拉取：磁盘上有候选但内存没有时先补齐，避免误触重分析。 */
+async function openCompareFor(e: MouseEvent, item: GalleryItem): Promise<void> {
+  const anchor = e.currentTarget as HTMLElement | null;
+  const key = keyOf(item);
+  if (!compareByKey.value[key]) {
+    await loadCompare(item.category, item.image.replace(/\.[^.]+$/, ""));
+  }
+  const entry = compareByKey.value[key];
+  if (!entry || !anchor) return;
+  showCompareAt(anchor, entry);
+}
+
 function showCompare(e: MouseEvent, item: GalleryItem): void {
   const entry = compareByKey.value[keyOf(item)];
   if (!entry) return;
-  const el = (e.currentTarget as HTMLElement).closest(".card") as HTMLElement
-    || (e.currentTarget as HTMLElement);
+  const anchor = e.currentTarget as HTMLElement | null;
+  if (!anchor) return;
+  showCompareAt(anchor, entry);
+}
+
+function showCompareAt(anchor: HTMLElement, entry: CompareEntry): void {
+  const el = (anchor.closest(".card") as HTMLElement) || anchor;
   window.clearTimeout(compareHideTimer);
   compareSide.value = "new";
   compareHover.value = { entry, ...positionFloat(el, 820, 640) };
@@ -908,7 +1094,12 @@ function showCompare(e: MouseEvent, item: GalleryItem): void {
 }
 
 function onCompareEnter(e: MouseEvent, item: GalleryItem): void {
-  if (hasCompare(item)) showCompare(e, item);
+  if (hasCompare(item)) {
+    showCompare(e, item);
+    return;
+  }
+  // 悬浮时也补拉一次，省得必须先点一下
+  if (item.pendingRerun) void openCompareFor(e, item);
 }
 
 function keepCompare(): void {
@@ -1052,19 +1243,22 @@ async function syncRetryStatus(): Promise<void> {
 
     <nav class="cat-tabs">
       <div class="tab-list">
-        <button :class="{ active: selected === 'all' && !statusFilter }" @click="selectCategory('all')">全部 · {{ stats?.total ?? data?.total ?? items.length }}</button>
-        <button v-for="c in categories" :key="c" :class="{ active: selected === c && !statusFilter }" @click="selectCategory(c)">
+        <button :class="{ active: selected === 'all' && !statusFilter, bump: bumpKeys.has('all') }" @click="selectCategory('all')">全部 · {{ stats?.total ?? data?.total ?? items.length }}</button>
+        <button v-for="c in categories" :key="c" :class="{ active: selected === c && !statusFilter, bump: bumpKeys.has(c) }" @click="selectCategory(c)">
           {{ catLabel(c) }} · {{ categoryCount(c) }}
         </button>
         <span class="tab-sep" aria-hidden="true"></span>
-        <button class="status" :class="{ active: statusFilter === 'favorite' }" @click="selectStatus('favorite')">
+        <button class="status" :class="{ active: statusFilter === 'favorite', bump: bumpKeys.has('favorite') }" @click="selectStatus('favorite')">
           已收藏 · {{ favoriteCount }}
         </button>
-        <button v-if="retryEnabled" class="status" :class="{ active: statusFilter === 'retrying' }" @click="selectStatus('retrying')">
+        <button v-if="retryEnabled" class="status" :class="{ active: statusFilter === 'retrying', bump: bumpKeys.has('retrying') }" @click="selectStatus('retrying')">
           重试中 · {{ retryingCount }}
         </button>
-        <button v-if="retryEnabled" class="status" :class="{ active: statusFilter === 'needs-update' }" @click="selectStatus('needs-update')">
+        <button v-if="retryEnabled" class="status" :class="{ active: statusFilter === 'needs-update', bump: bumpKeys.has('needs-update') }" @click="selectStatus('needs-update')">
           需更新 · {{ needsUpdateCount }}
+        </button>
+        <button v-if="retryEnabled" class="status failed" :class="{ active: statusFilter === 'failed', bump: bumpKeys.has('failed') }" @click="selectStatus('failed')">
+          失败 · {{ failedCount }}
         </button>
       </div>
       <select class="mobile-filter" :value="mobileFilterValue" aria-label="筛选" @change="onMobileFilterChange">
@@ -1076,33 +1270,12 @@ async function syncRetryStatus(): Promise<void> {
           <option value="status:favorite">已收藏 · {{ favoriteCount }}</option>
           <option v-if="retryEnabled" value="status:retrying">重试中 · {{ retryingCount }}</option>
           <option v-if="retryEnabled" value="status:needs-update">需更新 · {{ needsUpdateCount }}</option>
+          <option v-if="retryEnabled" value="status:failed">失败 · {{ failedCount }}</option>
         </optgroup>
       </select>
     </nav>
 
     <div v-if="loading" class="loading">加载中…</div>
-
-    <div v-if="showFolders" class="folders">
-      <button v-for="f in folders" :key="f.id" class="folder" @click="openFolder(f.id)">
-        <div class="folder-stack" aria-hidden="true">
-          <span class="fplate fplate-back" />
-          <span class="fplate fplate-mid" />
-          <span class="fplate fplate-front" />
-          <div class="fcover">
-            <StaticImage v-if="f.cover" :src="f.cover" :alt="f.title" />
-            <span v-else class="fempty">分析中</span>
-            <span class="fcount" :class="{ analyzing: f.status !== 'done' }">
-              {{ f.status === "done" ? f.total : `${f.done}/${f.total}` }}
-            </span>
-          </div>
-        </div>
-        <div class="fmeta">
-          <b>{{ f.title }}</b>
-          <small v-if="f.status !== 'done'">分析中 {{ f.done }}/{{ f.total }}</small>
-          <small v-else>{{ f.total }} 张 · 已完成</small>
-        </div>
-      </button>
-    </div>
 
     <div v-if="notice" class="toast">{{ notice }}</div>
 
@@ -1124,9 +1297,41 @@ async function syncRetryStatus(): Promise<void> {
         class="jrow"
         :class="{ 'is-single': row.cards.length === 1 }"
       >
+        <template v-for="c in row.cards" :key="'item' in c ? c.item.imageUrl : c.folder.id">
+        <button
+          v-if="'folder' in c"
+          class="folder in-row"
+          :style="{ width: c.w + 'px' }"
+          @click="openFolder(c.folder.id)"
+        >
+          <div class="folder-stack" aria-hidden="true">
+            <span class="fplate fplate-back" />
+            <span class="fplate fplate-mid" />
+            <span class="fplate fplate-front" />
+            <div class="fcover">
+              <StaticImage v-if="c.folder.cover" :src="c.folder.cover" :alt="c.folder.title" />
+              <span v-else class="fempty">分析中</span>
+              <span class="fcount" :class="{ analyzing: c.folder.status !== 'done' }">
+                {{ c.folder.status === "done" ? c.folder.total : `${c.folder.done}/${c.folder.total}` }}
+              </span>
+            </div>
+          </div>
+          <div class="fmeta">
+            <b>{{ c.folder.title }}</b>
+            <small v-if="c.folder.status !== 'done'">分析中 {{ c.folder.done }}/{{ c.folder.total }}</small>
+            <small v-else>
+              {{ c.folder.total }} 张 ·
+              <template v-if="c.folder.retrying && c.folder.pending">
+                有 {{ c.folder.retrying }} 条重试 · {{ c.folder.pending }} 条可更新
+              </template>
+              <template v-else-if="c.folder.retrying">有 {{ c.folder.retrying }} 条在重试</template>
+              <template v-else-if="c.folder.pending">{{ c.folder.pending }} 条可更新</template>
+              <template v-else>已完成</template>
+            </small>
+          </div>
+        </button>
         <article
-          v-for="c in row.cards"
-          :key="c.item.imageUrl"
+          v-else
           class="card"
           :style="{ width: c.w + 'px' }"
 
@@ -1150,7 +1355,8 @@ async function syncRetryStatus(): Promise<void> {
               :class="{
                 'is-queued': retryStateOf(c.item) === 'queued',
                 'is-running': retryStateOf(c.item) === 'running',
-                'is-compare': retryStateOf(c.item) === 'compare'
+                'is-compare': retryStateOf(c.item) === 'compare',
+                'is-failed': retryStateOf(c.item) === 'failed'
               }"
               :title="retryStateOf(c.item) === 'queued'
                 ? '等待中'
@@ -1169,6 +1375,18 @@ async function syncRetryStatus(): Promise<void> {
               <template v-else-if="retryStateOf(c.item) === 'compare'"><DiffOutlined /> 对比</template>
               <ReloadOutlined v-else />
             </button>
+            <button
+              v-if="c.item.pendingRerun"
+              class="rerun-btn"
+              title="重新分析"
+              @click.stop.prevent="reanalyze(c.item)"
+            ><ReloadOutlined /> 重试</button>
+            <button
+              v-if="c.item.retryFailed"
+              class="giveup-btn"
+              title="放弃这次重分析（保留原识别结果）"
+              @click.stop.prevent="discardRetry(c.item)"
+            >放弃</button>
             <button
               class="fav-btn"
               :class="{ 'is-fav': c.item.favorite }"
@@ -1195,6 +1413,7 @@ async function syncRetryStatus(): Promise<void> {
             </div>
           </div>
         </article>
+        </template>
       </div>
     </div>
 
@@ -1323,6 +1542,23 @@ async function syncRetryStatus(): Promise<void> {
   align-items: center;
   gap: 8px;
   min-width: 0;
+}
+
+/* 数量变化提示：跳动两下（由 WebSocket 推送触发） */
+@keyframes tab-bump {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.16); }
+  100% { transform: scale(1); }
+}
+.tab-list button.bump,
+.tab-list button.status.bump,
+.tab-list button.active.bump {
+  animation: tab-bump 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) 2;
+  border-color: #d9ff52;
+  color: #eaffb0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tab-list button.bump { animation: none; border-color: #d9ff52; }
 }
 .mobile-filter {
   display: none;
@@ -1454,6 +1690,26 @@ async function syncRetryStatus(): Promise<void> {
   gap: 16px;
   margin-bottom: 26px;
 }
+/* 行内混排的文件夹：高度由宽高比推出，明细放在封面下方（与图片卡同构） */
+.folder.in-row {
+  width: auto;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.folder.in-row .folder-stack {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 0.78;
+}
+.folder.in-row .fmeta {
+  position: static;
+  padding: 0;
+  margin: 0;
+  background: none;
+  border-radius: 0;
+}
 .folder {
   position: relative;
   width: 188px;
@@ -1480,21 +1736,18 @@ async function syncRetryStatus(): Promise<void> {
   border: 1px solid #3c4855;
   background: #1b242e;
   box-shadow: 0 6px 16px rgb(0 0 0 / 28%);
-  transform: translate(19px, 0);
+  transform: translate(6px, 0);
 }
 .fplate-mid {
   border: 1px solid #4b5765;
   background: #232d39;
-  transform: translate(12px, 0);
+  transform: translate(4px, 0);
 }
 .fplate-front {
   border: 1px solid #5d6a7a;
   background: #2b3644;
-  transform: translate(5px, 0);
+  transform: translate(2px, 0);
 }
-.folder:hover .fplate-back { transform: translate(23px, 0); }
-.folder:hover .fplate-mid { transform: translate(15px, 0); }
-.folder:hover .fplate-front { transform: translate(7px, 0); }
 
 .fcover {
   position: absolute;
@@ -1616,6 +1869,68 @@ async function syncRetryStatus(): Promise<void> {
   border-color: #d9ff52;
   color: #11140c;
   background: #d9ff52;
+}
+
+/* 失败态：淡红主题（状态胶囊 + 卡片按钮） */
+.tab-list button.status.failed {
+  border-color: rgb(255 138 138 / 42%);
+  color: #ffb8b8;
+}
+.tab-list button.status.failed.active {
+  border-color: #ff8a8a;
+  background: #ff8a8a;
+  color: #1a1113;
+}
+.tab-list button.status.failed.bump {
+  border-color: #ff8a8a;
+  color: #ffd0d0;
+}
+.retry-btn.is-failed {
+  opacity: 1;
+  color: #ff9b9b;
+  border-color: rgb(255 138 138 / 45%);
+}
+.rerun-btn {
+  position: absolute;
+  left: 66px;
+  bottom: 8px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 9px;
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: 99px;
+  color: #cfd6dd;
+  background: rgb(10 12 14 / 62%);
+  backdrop-filter: blur(6px);
+  font: 600 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  cursor: pointer;
+  transition: color 140ms ease, border-color 140ms ease;
+}
+.rerun-btn:hover {
+  color: #d9ff52;
+  border-color: rgb(217 255 82 / 60%);
+}
+.giveup-btn {
+  position: absolute;
+  right: 42px;
+  bottom: 8px;
+  z-index: 2;
+  height: 22px;
+  padding: 0 8px;
+  border: 1px solid rgb(255 138 138 / 45%);
+  border-radius: 6px;
+  background: rgb(255 138 138 / 14%);
+  color: #ffb8b8;
+  font: 600 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease;
+}
+.giveup-btn:hover {
+  background: #ff8a8a;
+  color: #1a1113;
 }
 
 .card .thumb {
@@ -1765,10 +2080,12 @@ async function syncRetryStatus(): Promise<void> {
 .card .row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  justify-content: flex-start;
+  gap: 6px;
+  min-width: 0;
 }
 .card .cat {
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   padding: 2px 7px;
@@ -1779,6 +2096,7 @@ async function syncRetryStatus(): Promise<void> {
   font: 600 9px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 .style-tag {
+  min-width: 0;
   overflow: hidden;
   color: #d9ff52;
   font: 500 9px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;

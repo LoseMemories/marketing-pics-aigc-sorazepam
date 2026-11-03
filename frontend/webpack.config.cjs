@@ -44,7 +44,9 @@ module.exports = (_env, argv) => ({
         options: { appendTsSuffixTo: [/\.vue$/], transpileOnly: true },
         exclude: /node_modules/
       },
-      { test: /\.css$/, use: ["style-loader", "css-loader"] }
+      { test: /\.css$/, use: ["style-loader", "css-loader"] },
+      // 文档页引用的本地截图
+      { test: /\.(png|jpe?g|webp|svg)$/, type: "asset/resource" }
     ]
   },
   plugins: [
@@ -95,10 +97,12 @@ module.exports = (_env, argv) => ({
     },
     proxy: [
       {
-        context: ["/api", "/media", "/health", "/gallery"],
+        context: ["/api", "/media", "/health", "/gallery", "/ws"],
         target: backendOptions[activeBackend],
         // router 每次请求时求值，因此切换后无需重启 dev-server
         router: () => backendOptions[activeBackend],
+        // /ws/stats 是 WebSocket，必须显式开启 upgrade 转发
+        ws: true,
         changeOrigin: true
       }
     ]
