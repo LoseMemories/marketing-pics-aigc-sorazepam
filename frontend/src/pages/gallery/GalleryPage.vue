@@ -512,14 +512,18 @@ async function refreshFolders(): Promise<void> {
   }
 }
 
-/** 拉取筛选区统计：只在首屏、收藏/删除、批次进度变化时调用 */
-async function loadStats(): Promise<void> {
+/** 拉取筛选区统计：只在首屏、收藏/删除、批次进度变化时调用；bump=true 时触发标签跳动 */
+async function loadStats(options: { bump?: boolean } = {}): Promise<void> {
   try {
     const res = await fetch("/api/v1/gallery/stats");
     if (!res.ok) return;
     const data = (await res.json()) as NonNullable<typeof stats.value>;
+    const prev = stats.value ?? null;
     // /stats 不含 retrying（只由 WebSocket 推送），保留当前值避免数字回退
-    stats.value = { ...data, retrying: stats.value?.retrying };
+    const next = { ...data, retrying: prev?.retrying };
+    stats.value = next;
+    // 主动刷新（收藏）也触发跳动，与 WebSocket 推送的视觉反馈保持一致
+    if (options.bump) flashBumps(changedStatKeys(prev, next));
   } catch {
     /* 统计失败不阻塞图库 */
   }
@@ -829,8 +833,8 @@ async function toggleFavorite(item: GalleryItem, event: MouseEvent): Promise<voi
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = (await res.json()) as { favorite?: boolean };
     item.favorite = Boolean(data.favorite);
-    // 收藏数属于筛选区统计，单独刷新接口
-    void loadStats();
+    // 收藏数属于筛选区统计，单独刷新接口，并让标签跳动一次
+    void loadStats({ bump: true });
     flash(item.favorite ? "已标记为优质素材" : "已取消优质素材");
   } catch (err) {
     item.favorite = !next;
